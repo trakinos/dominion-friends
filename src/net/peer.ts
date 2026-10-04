@@ -1,4 +1,5 @@
 import Peer, { type DataConnection } from 'peerjs';
+import { withHeartbeat } from './heartbeat';
 import { peerIdFor } from './roomCode';
 import type { Connection } from './transport';
 
@@ -56,7 +57,7 @@ function openHostPeer(code: string): Promise<HostPeer> {
         code,
         onConnection(cb) {
           peer.on('connection', (dc) => {
-            dc.on('open', () => cb(wrap(dc)));
+            dc.on('open', () => cb(withHeartbeat(wrap(dc))));
           });
         },
         destroy() {
@@ -125,7 +126,7 @@ export function connectToHost(code: string): Promise<Connection> {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        resolve(wrap(dc, () => peer.destroy()));
+        resolve(withHeartbeat(wrap(dc, () => peer.destroy())));
       });
     });
   });

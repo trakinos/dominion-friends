@@ -28,8 +28,14 @@ export function App() {
   useEffect(() => {
     if (!active?.host) return;
     const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    // pagehide tears the peer down cleanly so guests see the host leave right away.
+    const leave = () => active.close();
     window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
+    window.addEventListener('pagehide', leave);
+    return () => {
+      window.removeEventListener('beforeunload', warn);
+      window.removeEventListener('pagehide', leave);
+    };
   }, [active]);
 
   async function connect(name: string, open: () => Promise<ActiveSession>) {
