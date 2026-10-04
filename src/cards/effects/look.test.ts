@@ -64,3 +64,41 @@ describe('effect coverage', () => {
     expect(missing).toEqual([]);
   });
 });
+
+describe('reshuffles during look effects', () => {
+  it('Library: set-aside Actions stay out of the reshuffled deck and end in the discard pile', () => {
+    const g = play(['library'], ['village'], Array(7).fill('copper'));
+    expect(g.state.pending).toMatchObject({ kind: 'chooseOption', cards: ['village'] });
+    g.apply('p0', answerOption(0));
+    expect(g.state.pending).toBeNull();
+    const me = g.state.players[0];
+    expect(me.hand).toEqual(Array(7).fill('copper'));
+    expect(me.deck).toEqual([]);
+    expect(me.discard).toEqual(['village']);
+  });
+
+  it('Sentry: reshuffles the discard pile when only 1 card is left in the deck', () => {
+    const g = play(['sentry', 'estate'], ['copper'], ['silver', 'silver', 'silver']);
+    // Draws the copper, then looks at 2 cards from the reshuffled discard pile.
+    expect(g.state.players[0].hand).toEqual(['estate', 'copper']);
+    expect(g.state.pending).toMatchObject({ kind: 'chooseOption', cards: ['silver'] });
+    g.apply('p0', answerOption(1));
+    expect(g.state.pending).toMatchObject({ kind: 'chooseOption', cards: ['silver'] });
+    g.apply('p0', answerOption(2));
+    expect(g.state.pending).toBeNull();
+    const me = g.state.players[0];
+    expect(me.deck).toEqual(['silver', 'silver']);
+    expect(me.discard).toEqual(['silver']);
+  });
+
+  it('Sentry: discards looked cards', () => {
+    const g = play(['sentry', 'estate'], ['copper', 'gold', 'province', 'silver']);
+    g.apply('p0', answerOption(1));
+    g.apply('p0', answerOption(1));
+    expect(g.state.pending).toBeNull();
+    const me = g.state.players[0];
+    expect(me.discard).toEqual(['gold', 'province']);
+    expect(me.deck).toEqual(['silver']);
+    expect(g.state.trash).toEqual([]);
+  });
+});

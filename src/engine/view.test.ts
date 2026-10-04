@@ -34,6 +34,20 @@ describe('viewFor', () => {
     const theirs = viewFor(g.state, 'p0');
     expect(theirs.prompt).toBeNull();
     expect(theirs.waitingOn).toEqual({ player: 1, message: 'Discard 2 card(s), down to 3' });
+
+    const uninvolved = viewFor(g.state, 'p2');
+    expect(uninvolved.prompt).toBeNull();
+    expect(uninvolved.waitingOn).toEqual({ player: 1, message: 'Discard 2 card(s), down to 3' });
+  });
+
+  it('shows Sentry\'s looked-at cards only to the player looking', () => {
+    const s = newState();
+    // Witch is not in TEST_KINGDOM, so it can only leak through the prompt.
+    setZones(s, 0, { hand: ['sentry'], deck: ['copper', 'witch', 'estate', 'copper'], discard: [] });
+    const g = new Game(s);
+    g.apply('p0', { type: 'playAction', handIndex: 0 });
+    expect(viewFor(g.state, 'p0').prompt).toMatchObject({ kind: 'chooseOption', cards: ['witch'] });
+    expect(JSON.stringify(viewFor(g.state, 'p1'))).not.toContain('witch');
   });
 
   it('returns a copy that cannot change the game', () => {
