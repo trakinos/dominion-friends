@@ -25,9 +25,11 @@ interface Props {
   error: string | null;
   onIntent(intent: Intent): void;
   onDismissError(): void;
+  /** Only passed to the host: ends the game for everyone. */
+  onEndGame?(): void;
 }
 
-export function Board({ view, lobby, error, onIntent, onDismissError }: Props) {
+export function Board({ view, lobby, error, onIntent, onDismissError, onEndGame }: Props) {
   const [tab, setTab] = useState<Tab>('hand');
   const names = view.players.map((p) => p.name);
   const online = (i: number) => lobby.players.find((p) => p.id === view.players[i].id)?.online ?? false;
@@ -72,6 +74,16 @@ export function Board({ view, lobby, error, onIntent, onDismissError }: Props) {
           onPlayAll={() => onIntent({ type: 'playAllTreasures' })}
           onEndPhase={() => onIntent({ type: 'endPhase' })}
         />
+        {onEndGame && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('End the game for everyone and return to the lobby?')) onEndGame();
+            }}
+          >
+            End game
+          </button>
+        )}
         {view.waitingOn && (
           <div className="banner">
             Waiting for {names[view.waitingOn.player]}

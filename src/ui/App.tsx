@@ -54,6 +54,7 @@ export function App() {
   function leave() {
     active?.close();
     setActive(null);
+    setError(null);
     history.replaceState(null, '', location.pathname);
   }
 
@@ -90,10 +91,13 @@ export function App() {
           </p>
         )}
         <div className="actions">
-          <button type="button" className="primary" disabled={busy} onClick={() => connect(name, () => joinGame(code, name))}>
+          <button type="button" className="primary" disabled={busy} onClick={() => {
+              active.close();
+              void connect(name, () => joinGame(code, name));
+            }}>
             {busy ? 'Rejoining…' : 'Rejoin'}
           </button>
-          <button type="button" onClick={leave}>
+          <button type="button" disabled={busy} onClick={leave}>
             Back to start
           </button>
         </div>
@@ -149,6 +153,7 @@ export function App() {
       error={state.error}
       onIntent={(intent) => active.session.sendIntent(intent)}
       onDismissError={() => active.session.dismissError()}
+      onEndGame={active.host ? () => active.host?.backToLobby() : undefined}
     />
   );
 }

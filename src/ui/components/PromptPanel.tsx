@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Prompt, PromptAnswer } from '../../engine/types';
 import { cardsAnswer, selectionHint, toggle, type Selection } from '../promptSelection';
 import { Card } from './Card';
@@ -10,8 +10,6 @@ interface Props {
 
 export function PromptPanel({ prompt, onAnswer }: Props) {
   const [selection, setSelection] = useState<Selection>([]);
-  const promptKey = JSON.stringify(prompt);
-  useEffect(() => setSelection([]), [promptKey]);
   const answer = cardsAnswer(prompt, selection);
   const pick = (i: number) => setSelection((s) => toggle(prompt, s, i));
   const confirm = (
