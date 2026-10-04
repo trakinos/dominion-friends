@@ -33,6 +33,7 @@ export class Game {
     if (s.pending) {
       if (intent.type !== 'answerPrompt') return fail('Waiting for a choice to be made');
       if (s.pending.player !== player) return fail('It is not your choice to make');
+      if (!this.effect) return fail('This choice can no longer be resumed');
       const err = validateAnswer(s.pending, intent.answer);
       if (err) return fail(err);
       this.resume(intent.answer);
@@ -126,7 +127,7 @@ export class Game {
 
   private buy(card: CardId): ApplyResult {
     const { turn, supply } = this.state;
-    if (typeof card !== 'string' || supply[card] === undefined) return fail('No such pile');
+    if (typeof card !== 'string' || !Object.hasOwn(supply, card)) return fail('No such pile');
     if (supply[card] <= 0) return fail('That pile is empty');
     if (turn.buys < 1) return fail('No Buys left');
     const cost = getCard(card).cost;

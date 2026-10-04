@@ -92,6 +92,21 @@ describe('turn flow', () => {
     expect(g.state.result!.scores).toHaveLength(2);
     expect(g.apply('p1', { type: 'endPhase' })).toEqual({ ok: false, reason: 'The game is over' });
   });
+
+  it('rejects prototype keys as pile names', () => {
+    const g = gameWithHand(['copper', 'copper', 'copper', 'copper', 'copper']);
+    g.apply('p0', { type: 'playAllTreasures' });
+    for (const card of ['constructor', '__proto__', 'toString']) {
+      expect(g.apply('p0', { type: 'buy', card: card as CardId })).toEqual({ ok: false, reason: 'No such pile' });
+    }
+  });
+
+  it('rejects answers when no effect is waiting', () => {
+    const g = gameWithHand(['chapel', 'copper', 'copper', 'estate', 'estate']);
+    g.apply('p0', { type: 'playAction', handIndex: 0 });
+    const rebuilt = new Game(g.state);
+    expect(rebuilt.apply('p0', answerCards([0]))).toEqual({ ok: false, reason: 'This choice can no longer be resumed' });
+  });
 });
 
 describe('simple action cards', () => {

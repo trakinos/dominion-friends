@@ -30,7 +30,7 @@ export function createContext(state: GameState, me: number): EffectContext {
     addCoins(n) { state.turn.coins += n; },
 
     gain(player, card, to = 'discard') {
-      if ((state.supply[card] ?? 0) <= 0) return false;
+      if (!Object.hasOwn(state.supply, card) || state.supply[card] <= 0) return false;
       state.supply[card]--;
       const p = state.players[player];
       if (to === 'hand') p.hand.push(card);
@@ -120,13 +120,14 @@ export function createContext(state: GameState, me: number): EffectContext {
     *attackedOpponents(): Gen<number[]> {
       const hit: number[] = [];
       for (const opp of ctx.opponents()) {
-        if (state.players[opp].hand.some((c) => isType(c, 'reaction'))) {
+        const reaction = state.players[opp].hand.find((c) => isType(c, 'reaction'));
+        if (reaction) {
           const choice = yield* ctx.chooseOption(opp, 'An attack is coming. Reveal your Reaction to block it?', [
             'Reveal',
             "Don't reveal",
           ]);
           if (choice === 0) {
-            ctx.log(opp, 'reveals', ['moat']);
+            ctx.log(opp, 'reveals', [reaction]);
             continue;
           }
         }
