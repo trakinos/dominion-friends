@@ -1,0 +1,40 @@
+import type { CardData } from './types';
+
+export const BASIC_CARDS: CardData[] = [
+  { id: 'copper', cost: 0, types: ['treasure'], coins: 1, text: '$1' },
+  { id: 'silver', cost: 3, types: ['treasure'], coins: 2, text: '$2' },
+  { id: 'gold', cost: 6, types: ['treasure'], coins: 3, text: '$3' },
+  { id: 'estate', cost: 2, types: ['victory'], vp: 1, text: '1 VP' },
+  { id: 'duchy', cost: 5, types: ['victory'], vp: 3, text: '3 VP' },
+  { id: 'province', cost: 8, types: ['victory'], vp: 6, text: '6 VP' },
+  { id: 'curse', cost: 0, types: ['curse'], vp: -1, text: '-1 VP' },
+];
+
+export const KINGDOM_CARDS: CardData[] = [
+  { id: 'cellar', cost: 2, types: ['action'], text: '+1 Action. Discard any number of cards, then draw that many.' },
+  { id: 'chapel', cost: 2, types: ['action'], text: 'Trash up to 4 cards from your hand.' },
+  { id: 'moat', cost: 2, types: ['action', 'reaction'], text: '+2 Cards. When another player plays an Attack, you may first reveal this from your hand to be unaffected by it.' },
+  { id: 'harbinger', cost: 3, types: ['action'], text: '+1 Card, +1 Action. Look through your discard pile. You may put a card from it onto your deck.' },
+  { id: 'merchant', cost: 3, types: ['action'], text: '+1 Card, +1 Action. The first time you play a Silver this turn, +$1.' },
+  { id: 'vassal', cost: 3, types: ['action'], text: "+$2. Discard the top card of your deck. If it's an Action card, you may play it." },
+  { id: 'village', cost: 3, types: ['action'], text: '+1 Card, +2 Actions.' },
+  { id: 'workshop', cost: 3, types: ['action'], text: 'Gain a card costing up to $4.' },
+  { id: 'bureaucrat', cost: 4, types: ['action', 'attack'], text: 'Gain a Silver onto your deck. Each other player reveals a Victory card from their hand and puts it onto their deck (or reveals a hand with no Victory cards).' },
+  { id: 'gardens', cost: 4, types: ['victory'], vp: (owned) => Math.floor(owned.length / 10), text: 'Worth 1 VP per 10 cards you have (round down).' },
+  { id: 'militia', cost: 4, types: ['action', 'attack'], text: '+$2. Each other player discards down to 3 cards in hand.' },
+  { id: 'moneylender', cost: 4, types: ['action'], text: 'You may trash a Copper from your hand for +$3.' },
+  { id: 'poacher', cost: 4, types: ['action'], text: '+1 Card, +1 Action, +$1. Discard a card per empty Supply pile.' },
+  { id: 'remodel', cost: 4, types: ['action'], text: 'Trash a card from your hand. Gain a card costing up to $2 more than it.' },
+  { id: 'smithy', cost: 4, types: ['action'], text: '+3 Cards.' },
+  { id: 'throne_room', cost: 4, types: ['action'], text: 'You may play an Action card from your hand twice.' },
+  { id: 'bandit', cost: 5, types: ['action', 'attack'], text: 'Gain a Gold. Each other player reveals the top 2 cards of their deck, trashes a revealed Treasure other than Copper, and discards the rest.' },
+  { id: 'council_room', cost: 5, types: ['action'], text: '+4 Cards, +1 Buy. Each other player draws a card.' },
+  { id: 'festival', cost: 5, types: ['action'], text: '+2 Actions, +1 Buy, +$2.' },
+  { id: 'laboratory', cost: 5, types: ['action'], text: '+2 Cards, +1 Action.' },
+  { id: 'library', cost: 5, types: ['action'], text: 'Draw until you have 7 cards in hand, skipping any Action cards you choose to; set those aside, discarding them afterwards.' },
+  { id: 'market', cost: 5, types: ['action'], text: '+1 Card, +1 Action, +1 Buy, +$1.' },
+  { id: 'mine', cost: 5, types: ['action'], text: 'You may trash a Treasure from your hand. Gain a Treasure to your hand costing up to $3 more than it.' },
+  { id: 'sentry', cost: 5, types: ['action'], text: '+1 Card, +1 Action. Look at the top 2 cards of your deck. Trash and/or discard any number of them. Put the rest back on top in any order.' },
+  { id: 'witch', cost: 5, types: ['action', 'attack'], text: '+2 Cards. Each other player gains a Curse.' },
+  { id: 'artisan', cost: 6, types: ['action'], text: 'Gain a card to your hand costing up to $5. Put a card from your hand onto your deck.' },
+];
