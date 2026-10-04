@@ -77,4 +77,44 @@ describe('withHeartbeat', () => {
     expect(closed).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('closes the inner connection when it closes itself, so the peer gets released', async () => {
+    let innerClose: () => void = () => {};
+    const close = vi.fn();
+    const fake: Connection = { send: () => {}, onMessage: () => {}, onClose: (cb) => (innerClose = cb), close };
+    const w = withHeartbeat(fake, opts);
+    const closed = vi.fn();
+    w.onClose(closed);
+    innerClose();
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(closed).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores messages that arrive after it closed', async () => {
+    let deliver: (m: unknown) => void = () => {};
+    const fake: Connection = { send: () => {}, onMessage: (cb) => (deliver = cb), onClose: () => {}, close: () => {} };
+    const w = withHeartbeat(fake, opts);
+    const got = vi.fn();
+    w.onMessage(got);
+    w.close();
+    deliver({ type: 'late' });
+    expect(got).not.toHaveBeenCalled();
+  });
+
+  it('treats a local timer stall as a stall, not a dead peer', async () => {
+    const [a, b] = createMemoryPair();
+    const wa = withHeartbeat(a, opts);
+    const wb = withHeartbeat(b, opts);
+    const closed = vi.fn();
+    wa.onClose(closed);
+    wb.onClose(closed);
+    await vi.advanceTimersByTimeAsync(200);
+    // The machine sleeps: the clock jumps far ahead before the next tick fires.
+    vi.setSystemTime(Date.now() + 60_000);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(closed).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(closed).not.toHaveBeenCalled();
+    wa.close();
+  });
 });
