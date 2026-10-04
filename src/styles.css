@@ -552,7 +552,12 @@ input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px 
 .turn-pill.is-other { background: var(--surface-2); color: var(--text); animation: none; }
 .phases { list-style: none; margin: 0; padding: 3px; display: flex; background: var(--surface-2); border-radius: 99px; }
 .phases li { padding: 5px 14px; border-radius: 99px; font-weight: 800; font-size: 13px; color: var(--muted); }
+.phases { gap: 14px; }
+.phases li { position: relative; display: inline-flex; align-items: center; gap: 4px; }
+.phases li + li::before { content: '›'; position: absolute; left: -11px; color: var(--muted); font-weight: 800; }
 .phases li.is-on { background: var(--surface); color: var(--text); box-shadow: var(--e1); }
+.phases li.is-done { color: var(--text); opacity: .7; }
+.phases li .ico { width: 14px; height: 14px; }
 .counters { display: flex; gap: 14px; }
 .ctr { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: var(--muted); }
 .ctr b { font-family: var(--font-display); font-size: 20px; color: var(--text); }

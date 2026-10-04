@@ -47,6 +47,7 @@ const ui = {
   "turnOf": "{name}'s turn",
   "actionPhase": "Actions",
   "buyPhase": "Buys",
+  "cleanupPhase": "End of turn",
   "actions": "Actions",
   "buys": "Buys",
   "playAllTreasures": "Play all Treasures",

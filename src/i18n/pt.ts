@@ -45,6 +45,7 @@ const pt: Dictionary = {
     "turnOf": "Vez de {name}",
     "actionPhase": "Ações",
     "buyPhase": "Compras",
+    "cleanupPhase": "Fim do turno",
     "actions": "Ações",
     "buys": "Compras",
     "playAllTreasures": "Jogar todos os Tesouros",

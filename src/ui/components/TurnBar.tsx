@@ -3,6 +3,10 @@ import { useLang } from '../../i18n/LangProvider';
 import { canPlayAllTreasures, isMyTurn } from '../moves';
 import { Icon } from './Icon';
 
+/** Action → Buy → Cleanup. Cleanup is instant in the engine, so it only ever shows as the step ahead. */
+const STEPS = ['action', 'buy', 'cleanup'] as const;
+const LABELS = { action: 'actionPhase', buy: 'buyPhase', cleanup: 'cleanupPhase' } as const;
+
 interface Props {
   view: PlayerView;
   names: string[];
@@ -22,12 +26,16 @@ export function TurnBar({ view, names, onPlayAll, onEndPhase }: Props) {
         {mine ? tr.t('yourTurn') : tr.t('turnOf', { name: names[t.player] })}
       </strong>
       <ol className="phases">
-        <li className={t.phase === 'action' ? 'is-on' : ''} aria-current={t.phase === 'action' ? 'step' : undefined}>
-          {tr.t('actionPhase')}
-        </li>
-        <li className={t.phase === 'buy' ? 'is-on' : ''} aria-current={t.phase === 'buy' ? 'step' : undefined}>
-          {tr.t('buyPhase')}
-        </li>
+        {STEPS.map((step, i) => {
+          const at = STEPS.indexOf(t.phase);
+          const state = i < at ? 'is-done' : i === at ? 'is-on' : '';
+          return (
+            <li key={step} className={state} aria-current={i === at ? 'step' : undefined}>
+              {i < at && <Icon name="check" />}
+              {tr.t(LABELS[step])}
+            </li>
+          );
+        })}
       </ol>
       <div className="counters">
         <span className="ctr">
