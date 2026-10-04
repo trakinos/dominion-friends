@@ -31,7 +31,11 @@
 - **Verification after every task:** `npm test && npm run typecheck && npm run build` all pass. `build` is added in Task 1.
 
 **Deliberate deviations from spec §6:**
-- There are no `ping` or `ended` messages. PeerJS keeps the connection alive, and the result arrives inside `view.result`.
+- There is no `ended` message; the result arrives inside `view.result`. There is no `ping` message either, but both PeerJS ends run a heartbeat (`__hb` frames every 4s, closing after 12s of silence), because a closed tab or dropped network does not fire the DataConnection `close` event.
+- Guests connect with binary serialization, which chunks large messages (JSON channels refuse messages of 16300 bytes or more). Each view also carries only the last 150 log entries (`MAX_LOG_ENTRIES`).
+- When a guest loses the host, the UI shows a neutral "Connection lost" screen with a Rejoin button instead of "Host disconnected — game over", since the host may only have dropped briefly.
+- `GuestSession` has an `awaiting` guard: it ignores further intents between sending one and receiving the host's reply (view, error or lobby), so double clicks cannot send stale moves.
+- The host sees an "End game" button during play (with a confirm) so a game stuck on an offline player can be ended.
 - A guest who disconnects during the lobby loses their seat. Seats are only kept, as offline, once the game has started.
 - The host's own seat token lives only in memory, because the game ends when the host leaves anyway.
 
