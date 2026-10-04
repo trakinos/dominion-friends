@@ -6,7 +6,7 @@ export const HAND_EFFECTS: Record<CardId, Effect> = {
     ctx.addActions(1);
     const hand = ctx.state.players[ctx.me].hand;
     const picked = yield* ctx.chooseFromHand(ctx.me, {
-      min: 0, max: hand.length, message: 'Discard any number of cards, then draw that many',
+      id: 'cellarDiscard', min: 0, max: hand.length, message: 'Discard any number of cards, then draw that many',
     });
     ctx.discardFromHand(ctx.me, picked);
     ctx.draw(ctx.me, picked.length);
@@ -26,7 +26,7 @@ export const HAND_EFFECTS: Record<CardId, Effect> = {
   },
   *moneylender(ctx) {
     const picked = yield* ctx.chooseFromHand(ctx.me, {
-      min: 0, max: 1, message: 'You may trash a Copper for +$3', filter: (c) => c === 'copper',
+      id: 'trashCopper', min: 0, max: 1, message: 'You may trash a Copper for +$3', filter: (c) => c === 'copper',
     });
     if (picked.length === 0) return;
     ctx.trashFromHand(ctx.me, picked);
@@ -37,11 +37,11 @@ export const HAND_EFFECTS: Record<CardId, Effect> = {
     ctx.addActions(1);
     ctx.addCoins(1);
     const n = Math.min(ctx.emptySupplyPiles(), ctx.state.players[ctx.me].hand.length);
-    const picked = yield* ctx.chooseFromHand(ctx.me, { min: n, max: n, message: `Discard ${n} card(s)` });
+    const picked = yield* ctx.chooseFromHand(ctx.me, { id: 'discardForEmptyPiles', params: { n }, min: n, max: n, message: `Discard ${n} card(s)` });
     ctx.discardFromHand(ctx.me, picked);
   },
   *workshop(ctx) {
-    const card = yield* ctx.chooseSupply(ctx.me, { maxCost: 4, message: 'Gain a card costing up to $4' });
+    const card = yield* ctx.chooseSupply(ctx.me, { id: 'gainUpTo', params: { cost: 4 }, maxCost: 4, message: 'Gain a card costing up to $4' });
     if (card) ctx.gain(ctx.me, card);
   },
   *harbinger(ctx) {
@@ -49,7 +49,7 @@ export const HAND_EFFECTS: Record<CardId, Effect> = {
     ctx.addActions(1);
     const discard = ctx.state.players[ctx.me].discard;
     const picked = yield* ctx.chooseCards(ctx.me, discard, {
-      min: 0, max: 1, message: 'You may put a card from your discard pile onto your deck',
+      id: 'harbingerTopdeck', min: 0, max: 1, message: 'You may put a card from your discard pile onto your deck',
     });
     if (picked.length === 0) return;
     const [card] = discard.splice(picked[0], 1);
@@ -62,7 +62,10 @@ export const HAND_EFFECTS: Record<CardId, Effect> = {
     if (card === undefined) return;
     ctx.discardCards(ctx.me, [card]);
     if (!ctx.isType(card, 'action')) return;
-    const choice = yield* ctx.chooseOption(ctx.me, 'Play the discarded Action card?', ['Play it', 'Leave it'], [card]);
+    const choice = yield* ctx.chooseOption(ctx.me, {
+      id: 'vassalPlay', message: 'Play the discarded Action card?',
+      options: ['Play it', 'Leave it'], optionIds: ['playIt', 'leaveIt'], cards: [card],
+    });
     if (choice !== 0) return;
     const me = ctx.state.players[ctx.me];
     me.discard.splice(me.discard.lastIndexOf(card), 1);

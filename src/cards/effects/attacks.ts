@@ -8,7 +8,7 @@ export const ATTACK_EFFECTS: Record<CardId, Effect> = {
     for (const opp of victims) {
       const n = ctx.state.players[opp].hand.length - 3;
       if (n <= 0) continue;
-      const picked = yield* ctx.chooseFromHand(opp, { min: n, max: n, message: `Discard ${n} card(s), down to 3` });
+      const picked = yield* ctx.chooseFromHand(opp, { id: 'discardDownTo', params: { n }, min: n, max: n, message: `Discard ${n} card(s), down to 3` });
       ctx.discardFromHand(opp, picked);
     }
   },
@@ -28,7 +28,7 @@ export const ATTACK_EFFECTS: Record<CardId, Effect> = {
         .map((_, i) => i)
         .filter((i) => ctx.isType(revealed[i], 'treasure') && revealed[i] !== 'copper');
       const picked = yield* ctx.chooseCards(opp, revealed, {
-        min: 1, max: 1, selectable: targets, message: 'Trash a revealed Treasure',
+        id: 'trashRevealedTreasure', min: 1, max: 1, selectable: targets, message: 'Trash a revealed Treasure',
       });
       ctx.trashCards(opp, picked.map((i) => revealed[i]));
       ctx.discardCards(opp, revealed.filter((_, i) => !picked.includes(i)));
@@ -40,7 +40,7 @@ export const ATTACK_EFFECTS: Record<CardId, Effect> = {
     for (const opp of victims) {
       const hand = ctx.state.players[opp].hand;
       const picked = yield* ctx.chooseFromHand(opp, {
-        min: 1, max: 1, message: 'Put a Victory card from your hand onto your deck', filter: (c) => ctx.isType(c, 'victory'),
+        id: 'topdeckVictory', min: 1, max: 1, message: 'Put a Victory card from your hand onto your deck', filter: (c) => ctx.isType(c, 'victory'),
       });
       if (picked.length === 0) {
         ctx.log(opp, 'reveals a hand with no Victory cards', hand);

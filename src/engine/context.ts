@@ -85,7 +85,9 @@ export function createContext(state: GameState, me: number): EffectContext {
     *chooseFromHand(player, opts): Gen<number[]> {
       const hand = state.players[player].hand;
       const selectable = hand.map((_, i) => i).filter((i) => !opts.filter || opts.filter(hand[i]));
-      return yield* ctx.chooseCards(player, hand, { min: opts.min, max: opts.max, message: opts.message, selectable });
+      return yield* ctx.chooseCards(player, hand, {
+        id: opts.id, ...(opts.params && { params: opts.params }), min: opts.min, max: opts.max, message: opts.message, selectable,
+      });
     },
     *chooseCards(player, cards, opts): Gen<number[]> {
       const selectable = opts.selectable ?? cards.map((_, i) => i);
@@ -94,7 +96,8 @@ export function createContext(state: GameState, me: number): EffectContext {
       if (max === 0) return [];
       if (selectable.length === min) return [...selectable];
       const answer = yield {
-        kind: 'chooseCards', player, message: opts.message, cards: [...cards], selectable, min, max,
+        kind: 'chooseCards', id: opts.id, ...(opts.params && { params: opts.params }),
+        player, message: opts.message, cards: [...cards], selectable, min, max,
       };
       return (answer as AnswerOf<'cards'>).indices;
     },
@@ -103,18 +106,22 @@ export function createContext(state: GameState, me: number): EffectContext {
         (id) => state.supply[id] > 0 && getCard(id).cost <= opts.maxCost && (!opts.type || isType(id, opts.type)),
       );
       if (piles.length === 0) return null;
-      const answer = yield { kind: 'chooseSupply', player, message: opts.message, piles, optional: opts.optional ?? false };
+      const answer = yield {
+        kind: 'chooseSupply', id: opts.id, ...(opts.params && { params: opts.params }),
+        player, message: opts.message, piles, optional: opts.optional ?? false,
+      };
       return (answer as AnswerOf<'supply'>).card;
     },
-    *chooseOption(player, message, options, cards): Gen<number> {
+    *chooseOption(player, spec): Gen<number> {
+      const { id, message, options, optionIds, cards } = spec;
       const answer = yield cards
-        ? { kind: 'chooseOption', player, message, options, cards: [...cards] }
-        : { kind: 'chooseOption', player, message, options };
+        ? { kind: 'chooseOption', id, player, message, options, optionIds, cards: [...cards] }
+        : { kind: 'chooseOption', id, player, message, options, optionIds };
       return (answer as AnswerOf<'option'>).index;
     },
-    *orderCards(player, cards, message): Gen<CardId[]> {
+    *orderCards(player, cards, spec): Gen<CardId[]> {
       if (cards.length <= 1) return [...cards];
-      const answer = yield { kind: 'orderCards', player, message, cards: [...cards] };
+      const answer = yield { kind: 'orderCards', id: spec.id, player, message: spec.message, cards: [...cards] };
       return (answer as AnswerOf<'order'>).order.map((i) => cards[i]);
     },
     *attackedOpponents(): Gen<number[]> {
@@ -122,10 +129,12 @@ export function createContext(state: GameState, me: number): EffectContext {
       for (const opp of ctx.opponents()) {
         const reaction = state.players[opp].hand.find((c) => isType(c, 'reaction'));
         if (reaction) {
-          const choice = yield* ctx.chooseOption(opp, 'An attack is coming. Reveal your Reaction to block it?', [
-            'Reveal',
-            "Don't reveal",
-          ]);
+          const choice = yield* ctx.chooseOption(opp, {
+            id: 'revealReaction',
+            message: 'An attack is coming. Reveal your Reaction to block it?',
+            options: ['Reveal', "Don't reveal"],
+            optionIds: ['reveal', 'dontReveal'],
+          });
           if (choice === 0) {
             ctx.log(opp, 'reveals', [reaction]);
             continue;

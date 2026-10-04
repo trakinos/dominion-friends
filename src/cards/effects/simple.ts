@@ -25,7 +25,7 @@ export const SIMPLE_EFFECTS: Record<CardId, Effect> = {
     ctx.addCoins(1);
   },
   *chapel(ctx) {
-    const picked = yield* ctx.chooseFromHand(ctx.me, { min: 0, max: 4, message: 'Trash up to 4 cards from your hand' });
+    const picked = yield* ctx.chooseFromHand(ctx.me, { id: 'trashUpTo4', min: 0, max: 4, message: 'Trash up to 4 cards from your hand' });
     ctx.trashFromHand(ctx.me, picked);
   },
 };

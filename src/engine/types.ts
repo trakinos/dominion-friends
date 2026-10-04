@@ -29,9 +29,13 @@ export interface TurnState {
   silverPlayed: boolean;
 }
 
+export type PromptParams = Record<string, string | number>;
+
 export type Prompt =
   | {
       kind: 'chooseCards';
+      id: string;
+      params?: PromptParams;
       player: number;
       message: string;
       cards: CardId[];
@@ -40,9 +44,9 @@ export type Prompt =
       min: number;
       max: number;
     }
-  | { kind: 'chooseSupply'; player: number; message: string; piles: CardId[]; optional: boolean }
-  | { kind: 'chooseOption'; player: number; message: string; options: string[]; cards?: CardId[] }
-  | { kind: 'orderCards'; player: number; message: string; cards: CardId[] };
+  | { kind: 'chooseSupply'; id: string; params?: PromptParams; player: number; message: string; piles: CardId[]; optional: boolean }
+  | { kind: 'chooseOption'; id: string; params?: PromptParams; player: number; message: string; options: string[]; optionIds: string[]; cards?: CardId[] }
+  | { kind: 'orderCards'; id: string; params?: PromptParams; player: number; message: string; cards: CardId[] };
 
 export type PromptAnswer =
   | { kind: 'cards'; indices: number[] }

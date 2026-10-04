@@ -3,9 +3,9 @@ import type { Prompt } from '../engine/types';
 import { cardsAnswer, selectionHint, toggle } from './promptSelection';
 
 const choose = (selectable: number[], min: number, max: number): Prompt => ({
-  kind: 'chooseCards', player: 0, message: '', cards: ['copper', 'estate', 'silver'], selectable, min, max,
+  kind: 'chooseCards', id: 't', player: 0, message: '', cards: ['copper', 'estate', 'silver'], selectable, min, max,
 });
-const order: Prompt = { kind: 'orderCards', player: 0, message: '', cards: ['gold', 'silver'] };
+const order: Prompt = { kind: 'orderCards', id: 't', player: 0, message: '', cards: ['gold', 'silver'] };
 
 describe('promptSelection', () => {
   it('toggles only selectable cards, up to max', () => {

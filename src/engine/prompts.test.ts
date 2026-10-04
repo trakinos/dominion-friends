@@ -3,11 +3,11 @@ import { validateAnswer } from './prompts';
 import type { Prompt } from './types';
 
 const cards: Prompt = {
-  kind: 'chooseCards', player: 0, message: '', cards: ['copper', 'estate', 'silver'], selectable: [0, 2], min: 1, max: 2,
+  kind: 'chooseCards', id: 't', player: 0, message: '', cards: ['copper', 'estate', 'silver'], selectable: [0, 2], min: 1, max: 2,
 };
-const supply: Prompt = { kind: 'chooseSupply', player: 0, message: '', piles: ['silver', 'village'], optional: false };
-const option: Prompt = { kind: 'chooseOption', player: 0, message: '', options: ['Yes', 'No'] };
-const order: Prompt = { kind: 'orderCards', player: 0, message: '', cards: ['gold', 'estate'] };
+const supply: Prompt = { kind: 'chooseSupply', id: 't', player: 0, message: '', piles: ['silver', 'village'], optional: false };
+const option: Prompt = { kind: 'chooseOption', id: 't', player: 0, message: '', options: ['Yes', 'No'], optionIds: ['yes', 'no'] };
+const order: Prompt = { kind: 'orderCards', id: 't', player: 0, message: '', cards: ['gold', 'estate'] };
 
 describe('validateAnswer', () => {
   it('validates card selections', () => {

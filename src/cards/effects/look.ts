@@ -8,7 +8,10 @@ export const LOOK_EFFECTS: Record<CardId, Effect> = {
       const [card] = ctx.takeFromDeck(ctx.me, 1);
       if (card === undefined) break;
       if (ctx.isType(card, 'action')) {
-        const choice = yield* ctx.chooseOption(ctx.me, 'You drew an Action card. Set it aside?', ['Set it aside', 'Keep it'], [card]);
+        const choice = yield* ctx.chooseOption(ctx.me, {
+          id: 'librarySetAside', message: 'You drew an Action card. Set it aside?',
+          options: ['Set it aside', 'Keep it'], optionIds: ['setAside', 'keepIt'], cards: [card],
+        });
         if (choice === 0) {
           setAside.push(card);
           continue;
@@ -24,12 +27,17 @@ export const LOOK_EFFECTS: Record<CardId, Effect> = {
     const looked = ctx.takeFromDeck(ctx.me, 2);
     const kept: CardId[] = [];
     for (const card of looked) {
-      const choice = yield* ctx.chooseOption(ctx.me, 'What do you do with this card?', ['Trash', 'Discard', 'Put back'], [card]);
+      const choice = yield* ctx.chooseOption(ctx.me, {
+        id: 'sentryChoice', message: 'What do you do with this card?',
+        options: ['Trash', 'Discard', 'Put back'], optionIds: ['trash', 'discard', 'putBack'], cards: [card],
+      });
       if (choice === 0) ctx.trashCards(ctx.me, [card]);
       else if (choice === 1) ctx.discardCards(ctx.me, [card]);
       else kept.push(card);
     }
-    const ordered = yield* ctx.orderCards(ctx.me, kept, 'Order the cards to put back (first = top of deck)');
+    const ordered = yield* ctx.orderCards(ctx.me, kept, {
+      id: 'orderTopdeck', message: 'Order the cards to put back (first = top of deck)',
+    });
     ctx.putOnDeck(ctx.me, ordered);
   },
 };

@@ -17,7 +17,17 @@ export interface CardDef extends CardData {
   play?: Effect;
 }
 
+export interface ChooseOptionSpec {
+  id: string;
+  message: string;
+  options: string[];
+  optionIds: string[];
+  cards?: CardId[];
+}
+
 export interface ChooseFromHandOptions {
+  id: string;
+  params?: Record<string, string | number>;
   min: number;
   max: number;
   message: string;
@@ -25,6 +35,8 @@ export interface ChooseFromHandOptions {
 }
 
 export interface ChooseCardsOptions {
+  id: string;
+  params?: Record<string, string | number>;
   min: number;
   max: number;
   message: string;
@@ -33,6 +45,8 @@ export interface ChooseCardsOptions {
 }
 
 export interface ChooseSupplyOptions {
+  id: string;
+  params?: Record<string, string | number>;
   maxCost: number;
   message: string;
   optional?: boolean;
@@ -74,9 +88,9 @@ export interface EffectContext {
   chooseCards(player: number, cards: CardId[], opts: ChooseCardsOptions): Gen<number[]>;
   /** Returns null when no pile qualifies, or when optional and declined. */
   chooseSupply(player: number, opts: ChooseSupplyOptions): Gen<CardId | null>;
-  chooseOption(player: number, message: string, options: string[], cards?: CardId[]): Gen<number>;
+  chooseOption(player: number, spec: ChooseOptionSpec): Gen<number>;
   /** Returns the cards in the chosen order (first = top). No prompt for 0–1 cards. */
-  orderCards(player: number, cards: CardId[], message: string): Gen<CardId[]>;
+  orderCards(player: number, cards: CardId[], spec: { id: string; message: string }): Gen<CardId[]>;
   /** Asks Moat holders whether to reveal; returns the opponents the attack hits, in turn order. */
   attackedOpponents(): Gen<number[]>;
   /** Resolves a card's effect. The caller is responsible for moving the card into play. */

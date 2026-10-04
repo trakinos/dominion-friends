@@ -33,11 +33,11 @@ describe('viewFor', () => {
 
     const theirs = viewFor(g.state, 'p0');
     expect(theirs.prompt).toBeNull();
-    expect(theirs.waitingOn).toEqual({ player: 1, message: 'Discard 2 card(s), down to 3' });
+    expect(theirs.waitingOn).toEqual({ player: 1, message: 'Discard 2 card(s), down to 3', id: 'discardDownTo', params: { n: 2 } });
 
     const uninvolved = viewFor(g.state, 'p2');
     expect(uninvolved.prompt).toBeNull();
-    expect(uninvolved.waitingOn).toEqual({ player: 1, message: 'Discard 2 card(s), down to 3' });
+    expect(uninvolved.waitingOn).toEqual({ player: 1, message: 'Discard 2 card(s), down to 3', id: 'discardDownTo', params: { n: 2 } });
   });
 
   it('shows Sentry\'s looked-at cards only to the player looking', () => {

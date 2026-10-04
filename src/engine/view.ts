@@ -21,7 +21,7 @@ export interface PlayerView {
   /** The pending prompt, only when this player must answer it. */
   prompt: Prompt | null;
   /** Set when another player must answer a prompt. */
-  waitingOn: { player: number; message: string } | null;
+  waitingOn: { player: number; message: string; id: string; params?: Record<string, string | number> } | null;
   log: LogEntry[];
   result: GameResult | null;
 }
@@ -47,7 +47,15 @@ export function viewFor(state: GameState, playerId: string): PlayerView {
     trash: state.trash,
     turn: state.turn,
     prompt: pending && pending.player === you ? pending : null,
-    waitingOn: pending && pending.player !== you ? { player: pending.player, message: pending.message } : null,
+    waitingOn:
+      pending && pending.player !== you
+        ? {
+            player: pending.player,
+            message: pending.message,
+            id: pending.id,
+            ...(pending.params && { params: pending.params }),
+          }
+        : null,
     log: state.log,
     result: state.result,
   };
