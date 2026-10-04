@@ -76,14 +76,27 @@ export function App() {
     );
   }
 
+  // Only guests reach this: the host's own connection is in-memory and never drops.
   if (state.status === 'disconnected') {
+    const code = active.code;
+    const name = loadName();
     return (
       <Centered>
-        <h1>Host disconnected</h1>
-        <p className="muted">The game is over because the host left.</p>
-        <button type="button" onClick={leave}>
-          Back to start
-        </button>
+        <h1>Connection lost</h1>
+        <p className="muted">The host may have left, or your connection dropped. If the game is still running, you can rejoin.</p>
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        <div className="actions">
+          <button type="button" className="primary" disabled={busy} onClick={() => connect(name, () => joinGame(code, name))}>
+            {busy ? 'Rejoining…' : 'Rejoin'}
+          </button>
+          <button type="button" onClick={leave}>
+            Back to start
+          </button>
+        </div>
       </Centered>
     );
   }
