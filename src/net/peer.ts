@@ -19,8 +19,14 @@ function wrap(dc: DataConnection, onClosed?: () => void): Connection {
       dc.on('data', cb);
     },
     onClose(cb) {
-      dc.on('close', cb);
-      dc.on('error', cb);
+      let fired = false;
+      const once = () => {
+        if (fired) return;
+        fired = true;
+        cb();
+      };
+      dc.on('close', once);
+      dc.on('error', once);
     },
     close() {
       dc.close();
@@ -39,7 +45,12 @@ function openHostPeer(code: string): Promise<HostPeer> {
   return new Promise((resolve, reject) => {
     const peer = new Peer(peerIdFor(code));
     let opened = false;
+    let closing = false;
+    let retryDelay = 1000;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
     peer.on('open', () => {
+      retryDelay = 1000;
+      if (opened) return; // re-opened after a broker reconnect; already resolved
       opened = true;
       resolve({
         code,
@@ -49,19 +60,27 @@ function openHostPeer(code: string): Promise<HostPeer> {
           });
         },
         destroy() {
+          closing = true;
+          clearTimeout(retryTimer);
           peer.destroy();
         },
       });
     });
     // Losing the broker only stops new guests from joining; existing connections keep working.
     peer.on('disconnected', () => {
-      if (!peer.destroyed) peer.reconnect();
+      if (closing || peer.destroyed) return;
+      retryTimer = setTimeout(() => {
+        if (!closing && !peer.destroyed) peer.reconnect();
+      }, retryDelay);
+      retryDelay = Math.min(retryDelay * 2, 30_000);
     });
     peer.on('error', (err) => {
       if (opened) {
         console.warn('Host connection error', err);
         return;
       }
+      closing = true;
+      clearTimeout(retryTimer);
       peer.destroy();
       reject(err);
     });
@@ -98,6 +117,10 @@ export function connectToHost(code: string): Promise<Connection> {
     peer.on('error', fail);
     peer.on('open', () => {
       const dc = peer.connect(peerIdFor(code), { reliable: true, serialization: 'json' });
+      dc.on('error', fail);
+      dc.on('close', () =>
+        fail(new Error('Could not connect. The code may be wrong, or your network blocks peer-to-peer connections.')),
+      );
       dc.on('open', () => {
         if (settled) return;
         settled = true;
