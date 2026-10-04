@@ -116,8 +116,9 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 .card--curse { background: var(--t-curse); }
 .card--attack { background: var(--t-attack); }
 .card--reaction { background: var(--t-reaction); }
-.card__cost { position: absolute; top: 6px; right: 8px; font-weight: 700; font-size: 0.8rem; }
-.card__name { font-weight: 700; padding-right: 24px; }
+.card__cost { font-weight: 700; font-size: 0.75rem; color: var(--muted); }
+.card__name { font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
+.card--small .card__name { font-size: 0.8rem; }
 .card__text { font-size: 0.72rem; line-height: 1.25; flex: 1; }
 .card__types { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
 .card__badge {
@@ -152,6 +153,7 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
   margin: 0 auto;
 }
 .board__tabs { display: none; }
+.board > * { min-width: 0; }
 .board__supply { grid-area: supply; }
 .board__opponents { grid-area: opponents; }
 .board__play { grid-area: play; }
@@ -213,8 +215,9 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 .scores tr.is-winner td { font-weight: 700; }
 
 @media (max-width: 767px) {
+  .hand .card { flex: none; }
   .board {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "tabs" "opponents" "turn" "play" "supply" "log" "hand";
     padding: 8px 16px;
   }
