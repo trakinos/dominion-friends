@@ -24,6 +24,8 @@ export interface Translator {
   prompt(p: { id: string; message: string; params?: Params }): string;
   option(p: { optionIds: string[]; options: string[] }, index: number): string;
   logLine(entry: LogEntry, names: string[]): string;
+  /** The translated verb or sentence of a log entry, without player or cards. */
+  logText(text: string): string;
   reason(text: string): string;
 }
 
@@ -48,6 +50,7 @@ export function translator(lang: Lang): Translator {
       const cards = entry.cards && entry.cards.length > 0 ? ` ${entry.cards.map(card).join(', ')}` : '';
       return `${who}${own(d.log, entry.text) ?? entry.text}${cards}`;
     },
+    logText: (text) => own(d.log, text) ?? text,
     reason: (text) => {
       const exact = own(d.reasons, text);
       if (exact !== undefined) return exact;

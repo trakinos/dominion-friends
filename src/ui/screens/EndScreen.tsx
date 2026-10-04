@@ -1,5 +1,8 @@
 import type { CardId, GameResult } from '../../engine/types';
 import { useLang } from '../../i18n/LangProvider';
+import { primaryType } from '../format';
+import { Avatar } from '../components/Avatar';
+import { Icon } from '../components/Icon';
 
 interface Props {
   result: GameResult;
@@ -12,14 +15,19 @@ interface Props {
 export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave }: Props) {
   const { tr } = useLang();
   const ranked = [...result.scores].sort((a, b) => b.vp - a.vp || a.turns - b.turns);
+  const seat = (playerId: string) => result.scores.findIndex((s) => s.playerId === playerId);
   const winnerNames = result.scores.filter((s) => result.winners.includes(s.playerId)).map((s) => s.name);
   return (
     <main className="screen end">
+      <div className="trophy" aria-hidden="true">
+        <Icon name="trophy" />
+      </div>
       <h1>{winnerNames.length > 1 ? tr.t('sharedVictory', { names: winnerNames.join(' & ') }) : tr.t('wins', { name: winnerNames[0] })}</h1>
       <div className="table-wrap">
         <table className="scores">
           <thead>
             <tr>
+              <th aria-label="#" />
               <th>{tr.t('colPlayer')}</th>
               <th>{tr.t('colVp')}</th>
               <th>{tr.t('colTurns')}</th>
@@ -27,35 +35,64 @@ export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave 
             </tr>
           </thead>
           <tbody>
-            {ranked.map((s) => (
-              <tr key={s.playerId} className={result.winners.includes(s.playerId) ? 'is-winner' : ''}>
-                <td>{s.name}</td>
-                <td>{s.vp}</td>
-                <td>{s.turns}</td>
-                <td>
-                  {Object.entries(s.breakdown)
-                    .map(([id, row]) => `${tr.card(id as CardId)} ×${row.count} (${row.vp})`)
-                    .join(', ')}
-                </td>
-              </tr>
-            ))}
+            {ranked.map((s, rank) => {
+              const won = result.winners.includes(s.playerId);
+              return (
+                <tr key={s.playerId} className={won ? 'is-winner' : ''}>
+                  <td className="scores__rank">{rank + 1}</td>
+                  <td>
+                    <span className="scores__player">
+                      <Avatar name={s.name} seat={seat(s.playerId)} />
+                      {s.name}
+                      {won && (
+                        <span className="pill pill--gold">
+                          <Icon name="trophy" />
+                          {tr.t('winnerTag')}
+                        </span>
+                      )}
+                    </span>
+                  </td>
+                  <td className="scores__vp">
+                    {s.vp} <span className="sr-only">{tr.t('pts')}</span>
+                  </td>
+                  <td>
+                    <b>{s.turns}</b> <span className="sr-only">{tr.t('colTurns')}</span>
+                  </td>
+                  <td>
+                    <span className="bd">
+                      {Object.entries(s.breakdown).map(([id, row]) => (
+                        <span key={id}>
+                          <span className={`lchip lchip--${primaryType(id as CardId)}`}>{tr.card(id as CardId)}</span>
+                          <span className="lx">
+                            {' '}
+                            ×{row.count} ({row.vp})
+                          </span>
+                        </span>
+                      ))}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
-      <div className="actions">
+      <div className="actions actions--center">
         {isHost ? (
           <>
-            <button type="button" className="primary" onClick={onPlayAgain}>
+            <button type="button" className="primary lg" onClick={onPlayAgain}>
+              <Icon name="refresh" />
               {tr.t('playAgain')}
             </button>
-            <button type="button" onClick={onBackToLobby}>
+            <button type="button" className="lg" onClick={onBackToLobby}>
               {tr.t('backToLobby')}
             </button>
           </>
         ) : (
           <span className="muted">{tr.t('waitingHost')}</span>
         )}
-        <button type="button" onClick={onLeave}>
+        <button type="button" className="ghost lg" onClick={onLeave}>
+          <Icon name="door" />
           {tr.t('leave')}
         </button>
       </div>

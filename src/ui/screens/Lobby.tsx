@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { CardId } from '../../engine/types';
-import type { HostSession } from '../../net/host';
+import { MAX_PLAYERS, type HostSession } from '../../net/host';
 import type { LobbyState } from '../../net/protocol';
 import { useLang } from '../../i18n/LangProvider';
-import { Card } from '../components/Card';
+import { Avatar } from '../components/Avatar';
+import { Icon } from '../components/Icon';
 import { KingdomPicker } from '../components/KingdomPicker';
+import { Pile } from '../components/Pile';
 import { sortByCost } from '../moves';
 
 interface Props {
@@ -47,63 +49,98 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
   }
 
   const enoughPlayers = lobby.players.length >= 2;
+  const canStart = enoughPlayers && draft.length === 10;
+  const openSeats = Math.max(0, MAX_PLAYERS - lobby.players.length);
   return (
     <main className="screen lobby">
       <header className="lobby__header">
         <h1>{tr.t('room', { code })}</h1>
         <button type="button" onClick={onLeave}>
+          <Icon name="door" />
           {tr.t('leave')}
         </button>
       </header>
 
-      <section className="panel">
-        <h2>{tr.t('invite')}</h2>
-        <div className="share">
-          <input readOnly value={shareLink} onFocus={(e) => e.currentTarget.select()} aria-label={tr.t('shareLink')} />
-          <button type="button" onClick={copy}>
-            {copied ? tr.t('copied') : tr.t('copyLink')}
-          </button>
+      <div className="lobby__grid">
+        <div className="lobby__side">
+          <section className="panel">
+            <h2>{tr.t('invite')}</h2>
+            <p>{tr.t('inviteBlurb', { code })}</p>
+            <div className="share">
+              <input readOnly value={shareLink} onFocus={(e) => e.currentTarget.select()} aria-label={tr.t('shareLink')} />
+              <button type="button" className="primary" onClick={copy}>
+                <Icon name={copied ? 'check' : 'copy'} />
+                {copied ? tr.t('copied') : tr.t('copyLink')}
+              </button>
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="picker__bar" style={{ marginBottom: 0 }}>
+              <h2>{tr.t('players')}</h2>
+              <span className="picker__count" style={{ marginLeft: 'auto' }}>
+                {lobby.players.length}/{MAX_PLAYERS}
+              </span>
+            </div>
+            <ul className="seats">
+              {lobby.players.map((p, i) => (
+                <li key={p.id}>
+                  <Avatar name={p.name} seat={i} />
+                  <span className="seats__name">{p.name}</span>
+                  {p.id === lobby.hostId && <span className="pill">{tr.t('hostTag')}</span>}
+                  {p.id === me && <span className="pill pill--accent">{tr.t('youTag')}</span>}
+                  <span className="seats__status">
+                    <span className={`dot ${p.online ? 'dot--on' : ''}`} />
+                    {p.online ? tr.t('online') : tr.t('offline')}
+                  </span>
+                </li>
+              ))}
+              {Array.from({ length: openSeats }, (_, i) => (
+                <li key={`open-${i}`} className="is-empty">
+                  <span className="seats__ghost" />
+                  {tr.t('emptySeat')}
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-      </section>
 
-      <section className="panel">
-        <h2>{tr.t('players', { n: lobby.players.length })}</h2>
-        <ul className="seats">
-          {lobby.players.map((p) => (
-            <li key={p.id}>
-              <span className={`dot ${p.online ? 'dot--on' : ''}`} />
-              {p.name}
-              {p.id === lobby.hostId && ` ${tr.t('hostTag')}`}
-              {p.id === me && ` ${tr.t('youTag')}`}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="panel">
-        <h2>{tr.t('kingdom')}</h2>
-        {host ? (
-          <KingdomPicker selected={draft} onToggle={toggle} onRandomize={() => host.randomizeKingdom()} />
-        ) : (
-          <div className="card-row">
-            {sortByCost(lobby.kingdom).map((id) => (
-              <Card key={id} id={id} />
-            ))}
-          </div>
-        )}
-      </section>
+        <section className="panel">
+          {host ? (
+            <KingdomPicker selected={draft} onToggle={toggle} onRandomize={() => host.randomizeKingdom()} />
+          ) : (
+            <>
+              <div className="picker__bar">
+                <h2>{tr.t('kingdom')}</h2>
+                <span className="zone__hint">{tr.t('kingdomByHost')}</span>
+              </div>
+              <div className="pile-grid">
+                {sortByCost(lobby.kingdom).map((id) => (
+                  <Pile key={id} id={id} showTypes />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      </div>
 
       {host ? (
-        <div className="actions">
-          <button type="button" className="primary" disabled={!enoughPlayers || draft.length !== 10} onClick={start}>
+        <div className="startbar">
+          <div className="startbar__info">
+            <strong>{canStart ? tr.t('readyToStart') : !enoughPlayers ? tr.t('needPlayer') : tr.t('choose10')}</strong>
+            <span>{tr.t('startSummary', { players: lobby.players.length, cards: draft.length })}</span>
+            {startError && <span className="error">{tr.reason(startError)}</span>}
+          </div>
+          <button type="button" className="primary lg" disabled={!canStart} onClick={start}>
+            <Icon name="play" />
             {tr.t('startGame')}
           </button>
-          {!enoughPlayers && <span className="muted">{tr.t('needPlayer')}</span>}
-          {draft.length !== 10 && <span className="muted">{tr.t('choose10')}</span>}
-          {startError && <p className="error">{tr.reason(startError)}</p>}
         </div>
       ) : (
-        <p className="muted">{tr.t('waitingHostStart')}</p>
+        <div className="banner">
+          <Icon name="clock" />
+          {tr.t('waitingHostStart')}
+        </div>
       )}
     </main>
   );

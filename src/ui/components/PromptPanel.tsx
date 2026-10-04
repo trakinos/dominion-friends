@@ -27,7 +27,7 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
 
         {prompt.kind === 'chooseCards' && (
           <>
-            <p className="muted">{selectionHint(prompt, tr)}</p>
+            <p className="prompt__hint">{selectionHint(prompt, tr)}</p>
             <div className="card-row">
               {prompt.cards.map((id, i) => {
                 const allowed = prompt.selectable.includes(i);
@@ -48,14 +48,14 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
 
         {prompt.kind === 'orderCards' && (
           <>
-            <p className="muted">{selectionHint(prompt, tr)}</p>
+            <p className="prompt__hint">{selectionHint(prompt, tr)}</p>
             <div className="card-row">
               {prompt.cards.map((id, i) => (
                 <Card
                   key={i}
                   id={id}
                   selected={selection.includes(i)}
-                  badge={selection.includes(i) ? selection.indexOf(i) + 1 : undefined}
+                  order={selection.includes(i) ? selection.indexOf(i) + 1 : undefined}
                   onClick={() => pick(i)}
                 />
               ))}

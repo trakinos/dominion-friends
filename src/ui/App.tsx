@@ -8,7 +8,9 @@ import { Board } from './screens/Board';
 import { EndScreen } from './screens/EndScreen';
 import { Home } from './screens/Home';
 import { Lobby } from './screens/Lobby';
+import { Icon } from './components/Icon';
 import { LangToggle } from './components/LangToggle';
+import { Loader } from './components/Loader';
 import { loadName, saveName } from './storage';
 import { useGuestState } from './useGuestState';
 
@@ -87,6 +89,9 @@ export function App() {
       const name = loadName();
       return (
         <Centered>
+          <div className="sig" aria-hidden="true">
+            <Icon name="wifiOff" />
+          </div>
           <h1>{tr.t('connectionLost')}</h1>
           <p className="muted">{tr.t('connectionLostBody')}</p>
           {error && (
@@ -94,11 +99,12 @@ export function App() {
               {tr.reason(error)}
             </p>
           )}
-          <div className="actions">
+          <div className="actions actions--center">
             <button type="button" className="primary" disabled={busy} onClick={() => {
                 active.close();
                 void connect(name, () => joinGame(code, name));
               }}>
+              <Icon name="refresh" />
               {busy ? tr.t('rejoining') : tr.t('rejoin')}
             </button>
             <button type="button" disabled={busy} onClick={leave}>
@@ -112,7 +118,8 @@ export function App() {
     if (state.status === 'connecting' || !state.lobby || !state.playerId) {
       return (
         <Centered>
-          <p className="muted">{tr.t('joiningRoom', { code: active.code })}</p>
+          <Loader />
+          <h2>{tr.t('joiningRoom', { code: active.code })}</h2>
         </Centered>
       );
     }
@@ -133,7 +140,8 @@ export function App() {
     if (!state.view) {
       return (
         <Centered>
-          <p className="muted">{tr.t('startingGame')}</p>
+          <Loader />
+          <h2>{tr.t('startingGame')}</h2>
         </Centered>
       );
     }
@@ -154,6 +162,7 @@ export function App() {
       <Board
         view={state.view}
         lobby={state.lobby}
+        code={active.code}
         error={state.error}
         onIntent={(intent) => active.session.sendIntent(intent)}
         onDismissError={() => active.session.dismissError()}

@@ -28,8 +28,8 @@ describe('translator', () => {
   const en = translator('en');
 
   it('translates card names and text', () => {
-    expect(pt.card('smithy')).toBe('Compre Três');
-    expect(en.card('smithy')).toBe('Draw Three');
+    expect(pt.card('smithy')).toBe('Caixote');
+    expect(en.card('smithy')).toBe('Crate');
     expect(pt.cardText('village')).toBe('+1 Carta, +2 Ações.');
     expect(en.cardText('village')).toBe('+1 Card, +2 Actions.');
     expect(pt.cardType('victory')).toBe('Vitória');
@@ -53,8 +53,8 @@ describe('translator', () => {
   });
 
   it('formats log lines', () => {
-    expect(pt.logLine({ player: 0, text: 'plays', cards: ['village', 'smithy'] }, ['Ana'])).toBe('Ana joga Vila, Compre Três');
-    expect(en.logLine({ player: 0, text: 'plays', cards: ['village', 'smithy'] }, ['Ana'])).toBe('Ana plays Village, Draw Three');
+    expect(pt.logLine({ player: 0, text: 'plays', cards: ['village', 'smithy'] }, ['Ana'])).toBe('Ana joga Mutirão, Caixote');
+    expect(en.logLine({ player: 0, text: 'plays', cards: ['village', 'smithy'] }, ['Ana'])).toBe('Ana plays Work Party, Crate');
     expect(pt.logLine({ player: null, text: 'Game over' }, ['Ana'])).toBe('Fim de jogo');
   });
 
