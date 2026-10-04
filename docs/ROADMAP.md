@@ -36,8 +36,18 @@ The game rules don't change; only the presentation does.
 - [ ] Add card art: images supplied or generated, plus an image slot in the card frame.
 - [ ] Optionally, rewrite the card text in the theme's voice. The rules stay the same.
 
-### 4. Gameplay polish
+### 4. Learning the game
+New players should be able to learn without someone explaining it.
+- [ ] **Rules:** an in-game rules page that covers setup, the turn (Action, Buy, Clean-up), card types, how the game ends and scoring. Open it from the Home screen, the Lobby and the Board.
+- [ ] **Tutorial tips:** short hints that point out key moments for first-time players, such as "Play your Treasures, then buy a card" or "Actions let you play more cards". They can be dismissed, a player can turn them off, and they stay off once dismissed.
+
+### 5. Gameplay polish
 Order these by playtest feedback.
+- [ ] **Animations:**
+  - cards moving between zones: drawing, playing, buying, discarding, trashing;
+  - shuffling;
+  - highlights when a turn passes and when a choice prompt opens;
+  - support for reduced motion (`prefers-reduced-motion`).
 - [ ] Show set-aside and revealed cards (Library, Sentry, Bandit). Today they vanish from view while the choice is open.
 - [ ] Alert players when it's their turn: a sound, a changing tab title, or both.
 - [ ] Add a turn timer, or let the host skip a player who is offline.
@@ -51,7 +61,7 @@ Order these by playtest feedback.
 
 ## Later
 
-### 5. Bigger additions
+### 6. Bigger additions
 - [ ] Custom cards. The engine already supports them as data plus a small effect function.
 - [ ] A Tanto Cuore-style twist, such as a separate scoring area that opponents can attack.
 - [ ] Expansion cards (Intrigue, Seaside and so on).
