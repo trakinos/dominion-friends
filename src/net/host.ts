@@ -9,7 +9,7 @@ import type { Connection } from './transport';
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
-/** PeerJS refuses messages over ~16 KB on JSON channels, so each view carries only the recent log. */
+/** Each view carries only the recent log: keeps messages small (binary channels chunk large ones, but a whole-game log is wasteful). */
 export const MAX_LOG_ENTRIES = 150;
 
 export interface HostOptions {

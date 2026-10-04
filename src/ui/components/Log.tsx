@@ -12,7 +12,7 @@ export function Log({ entries, names }: Props) {
   useEffect(() => {
     const el = ref.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [entries.length]);
+  }, [entries]);
   return (
     <ol className="log" ref={ref} aria-label="Game log">
       {entries.map((entry, i) => (
