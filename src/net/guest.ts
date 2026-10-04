@@ -12,6 +12,8 @@ export interface GuestState {
   view: PlayerView | null;
   /** The last error from the host: why joining failed, or why a move was refused. */
   error: string | null;
+  /** True from sending a move until the host answers, so a double click can't send a stale second move. */
+  awaiting: boolean;
 }
 
 export interface TokenStore {
@@ -21,7 +23,7 @@ export interface TokenStore {
 
 /** One player's side of the connection, the host's own UI included. */
 export class GuestSession {
-  private state: GuestState = { status: 'connecting', playerId: null, lobby: null, view: null, error: null };
+  private state: GuestState = { status: 'connecting', playerId: null, lobby: null, view: null, error: null, awaiting: false };
   private readonly listeners = new Set<(state: GuestState) => void>();
 
   constructor(
@@ -52,8 +54,8 @@ export class GuestSession {
   }
 
   sendIntent(intent: Intent): void {
-    if (this.state.status !== 'joined') return;
-    if (this.state.error) this.update({ error: null });
+    if (this.state.status !== 'joined' || this.state.awaiting) return;
+    this.update({ error: null, awaiting: true });
     const msg: GuestMessage = { type: 'intent', intent };
     this.conn.send(msg);
   }
@@ -73,17 +75,21 @@ export class GuestSession {
         this.update({ status: 'joined', playerId: msg.playerId, error: null });
         break;
       case 'lobby':
-        this.update({ lobby: msg.lobby, view: msg.lobby.inGame ? this.state.view : null });
+        this.update({
+          lobby: msg.lobby,
+          view: msg.lobby.inGame ? this.state.view : null,
+          ...(msg.lobby.inGame ? {} : { awaiting: false }),
+        });
         break;
       case 'view':
-        this.update({ view: msg.view });
+        this.update({ view: msg.view, awaiting: false });
         break;
       case 'error':
         if (this.state.status === 'connecting') {
           this.update({ status: 'rejected', error: msg.reason });
           this.conn.close();
         } else {
-          this.update({ error: msg.reason });
+          this.update({ error: msg.reason, awaiting: false });
         }
         break;
     }

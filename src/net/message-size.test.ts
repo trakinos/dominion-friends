@@ -31,7 +31,7 @@ describe('message size', () => {
           if (m.type === 'view') expect(m.view.log.length).toBeLessThanOrEqual(MAX_LOG_ENTRIES);
         }
       }
-      console.info(`seed ${seed}: max message ${max} bytes, full log ${game.state.log.length}`);
+      expect(max).toBeGreaterThan(0);
     }, 60000);
   }
 });

@@ -72,7 +72,7 @@ describe('GuestSession', () => {
     expect(again.current.view!.you).toBe(1);
   });
 
-  it('shows a refused move as an error and clears it on the next move', async () => {
+  it('shows a refused move as an error until it is dismissed', async () => {
     const { host, sessions } = await table(['Ana', 'Bo']);
     host.start();
     await flush();
@@ -119,5 +119,35 @@ describe('GuestSession', () => {
     }
     expect(game.state.result).not.toBeNull();
     for (const s of sessions) expect(s.current.view!.result!.winners).toEqual(game.state.result!.winners);
+  });
+
+  it('ignores a second intent while waiting for the reply, then accepts again', async () => {
+    const { host, sessions } = await table(['Ana', 'Bo']);
+    host.start();
+    await flush();
+    const mover = sessions[host.game!.state.turn.player];
+    expect(mover.current.awaiting).toBe(false);
+    mover.sendIntent({ type: 'endPhase' });
+    mover.sendIntent({ type: 'endPhase' });
+    expect(mover.current.awaiting).toBe(true);
+    await flush();
+    expect(host.game!.state.turn.phase).toBe('buy');
+    expect(mover.current.awaiting).toBe(false);
+    mover.sendIntent({ type: 'endPhase' });
+    await flush();
+    expect(host.game!.state.turn.player).not.toBe(sessions.indexOf(mover));
+  });
+
+  it('stops awaiting when the host refuses the move', async () => {
+    const { host, sessions } = await table(['Ana', 'Bo']);
+    host.start();
+    await flush();
+    const waiting = sessions[1 - host.game!.state.turn.player];
+    waiting.sendIntent({ type: 'endPhase' });
+    expect(waiting.current.awaiting).toBe(true);
+    await flush();
+    expect(waiting.current).toMatchObject({ awaiting: false, error: 'It is not your turn' });
+    waiting.sendIntent({ type: 'endPhase' });
+    expect(waiting.current.error).toBeNull();
   });
 });
