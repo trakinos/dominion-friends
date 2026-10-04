@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MAX_NAME_LENGTH } from '../../net/protocol';
+import { useLang } from '../../i18n/LangProvider';
 import { CODE_LENGTH, normalizeRoomCode } from '../../net/roomCode';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function Home({ initialName, initialCode, busy, error, onHost, onJoin }: Props) {
+  const { tr } = useLang();
   const [name, setName] = useState(initialName);
   const [code, setCode] = useState(initialCode);
   const cleanCode = normalizeRoomCode(code);
@@ -19,24 +21,24 @@ export function Home({ initialName, initialCode, busy, error, onHost, onJoin }: 
     <main className="screen home">
       <div>
         <h1>Dominion Friends</h1>
-        <p className="muted">A deck-building card game for 2–4 friends.</p>
+        <p className="muted">{tr.t('tagline')}</p>
       </div>
       <label className="field">
-        Your name
-        <input value={name} maxLength={MAX_NAME_LENGTH} onChange={(e) => setName(e.target.value)} placeholder="Player" />
+        {tr.t('yourName')}
+        <input value={name} maxLength={MAX_NAME_LENGTH} onChange={(e) => setName(e.target.value)} placeholder={tr.t('namePlaceholder')} />
       </label>
       <div className="home__choices">
         <section className="panel">
-          <h2>Host a game</h2>
-          <p className="muted">Create a room and share the link with your friends.</p>
+          <h2>{tr.t('hostTitle')}</h2>
+          <p className="muted">{tr.t('hostBlurb')}</p>
           <button type="button" className="primary" disabled={busy} onClick={() => onHost(name)}>
-            Host game
+            {tr.t('hostButton')}
           </button>
         </section>
         <section className="panel">
-          <h2>Join a game</h2>
+          <h2>{tr.t('joinTitle')}</h2>
           <label className="field">
-            Room code
+            {tr.t('roomCode')}
             <input
               value={code}
               maxLength={CODE_LENGTH}
@@ -46,14 +48,14 @@ export function Home({ initialName, initialCode, busy, error, onHost, onJoin }: 
             />
           </label>
           <button type="button" className="primary" disabled={busy || !cleanCode} onClick={() => cleanCode && onJoin(cleanCode, name)}>
-            Join
+            {tr.t('joinButton')}
           </button>
         </section>
       </div>
-      {busy && <p className="muted">Connecting…</p>}
+      {busy && <p className="muted">{tr.t('connecting')}</p>}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {tr.reason(error)}
         </p>
       )}
     </main>

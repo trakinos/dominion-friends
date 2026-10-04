@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import type { Prompt } from '../engine/types';
 import { cardsAnswer, selectionHint, toggle } from './promptSelection';
+import { translator } from '../i18n';
+
+const en = translator('en');
+const pt = translator('pt');
 
 const choose = (selectable: number[], min: number, max: number): Prompt => ({
   kind: 'chooseCards', id: 't', player: 0, message: '', cards: ['copper', 'estate', 'silver'], selectable, min, max,
@@ -37,10 +41,12 @@ describe('promptSelection', () => {
   });
 
   it('describes what to pick', () => {
-    expect(selectionHint(choose([0], 2, 2))).toBe('Choose 2 cards.');
-    expect(selectionHint(choose([0], 0, 4))).toBe('Choose up to 4 cards.');
-    expect(selectionHint(choose([0], 0, 1))).toBe('Choose up to 1 card.');
-    expect(selectionHint(choose([0], 1, 2))).toBe('Choose 1 to 2 cards.');
-    expect(selectionHint(order)).toBe('Click the cards in order, starting with the one to put on top.');
+    expect(selectionHint(choose([0], 2, 2), en)).toBe('Choose 2 cards.');
+    expect(selectionHint(choose([0], 0, 4), en)).toBe('Choose up to 4 cards.');
+    expect(selectionHint(choose([0], 0, 1), en)).toBe('Choose up to 1 card.');
+    expect(selectionHint(choose([0], 1, 2), en)).toBe('Choose 1 to 2 cards.');
+    expect(selectionHint(order, en)).toBe('Click the cards in order, starting with the one to put on top.');
+    expect(selectionHint(choose([0], 2, 2), pt)).toBe(pt.t('hintExact', { n: 2 }));
+    expect(selectionHint(choose([0], 2, 2), pt)).not.toBe('Choose 2 cards.');
   });
 });

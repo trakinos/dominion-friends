@@ -1,8 +1,6 @@
 import type { LogEntry } from '../engine/types';
-import { cardName } from '../theme';
+import type { Translator } from '../i18n';
 
-export function formatLogEntry(entry: LogEntry, names: string[]): string {
-  const who = entry.player === null ? '' : `${names[entry.player] ?? 'Someone'} `;
-  const cards = entry.cards && entry.cards.length > 0 ? ` ${entry.cards.map(cardName).join(', ')}` : '';
-  return `${who}${entry.text}${cards}`;
+export function formatLogEntry(entry: LogEntry, names: string[], tr: Translator): string {
+  return tr.logLine(entry, names);
 }

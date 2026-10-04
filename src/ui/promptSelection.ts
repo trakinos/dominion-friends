@@ -1,4 +1,5 @@
 import type { Prompt, PromptAnswer } from '../engine/types';
+import type { Translator } from '../i18n';
 
 /** Indices into the prompt's cards: a set for chooseCards, an ordered list for orderCards. */
 export type Selection = number[];
@@ -29,12 +30,11 @@ export function cardsAnswer(prompt: Prompt, selection: Selection): PromptAnswer 
   return null;
 }
 
-export function selectionHint(prompt: Prompt): string {
-  if (prompt.kind === 'orderCards') return 'Click the cards in order, starting with the one to put on top.';
+export function selectionHint(prompt: Prompt, tr: Translator): string {
+  if (prompt.kind === 'orderCards') return tr.t('hintOrder');
   if (prompt.kind !== 'chooseCards') return '';
   const { min, max } = prompt;
-  const cards = (n: number) => `${n} card${n === 1 ? '' : 's'}`;
-  if (min === max) return `Choose ${cards(max)}.`;
-  if (min === 0) return `Choose up to ${cards(max)}.`;
-  return `Choose ${min} to ${max} cards.`;
+  if (min === max) return max === 1 ? tr.t('hintExact1') : tr.t('hintExact', { n: max });
+  if (min === 0) return max === 1 ? tr.t('hintUpTo1') : tr.t('hintUpTo', { n: max });
+  return tr.t('hintRange', { min, max });
 }

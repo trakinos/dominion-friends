@@ -1,5 +1,6 @@
 import type { GameResult } from '../../engine/types';
-import { cardName } from '../../theme';
+import type { CardId } from '../../engine/types';
+import { useLang } from '../../i18n/LangProvider';
 
 interface Props {
   result: GameResult;
@@ -10,19 +11,20 @@ interface Props {
 }
 
 export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave }: Props) {
+  const { tr } = useLang();
   const ranked = [...result.scores].sort((a, b) => b.vp - a.vp || a.turns - b.turns);
   const winnerNames = result.scores.filter((s) => result.winners.includes(s.playerId)).map((s) => s.name);
   return (
     <main className="screen end">
-      <h1>{winnerNames.length > 1 ? `Shared victory: ${winnerNames.join(' & ')}` : `${winnerNames[0]} wins!`}</h1>
+      <h1>{winnerNames.length > 1 ? tr.t('sharedVictory', { names: winnerNames.join(' & ') }) : tr.t('wins', { name: winnerNames[0] })}</h1>
       <div className="table-wrap">
         <table className="scores">
           <thead>
             <tr>
-              <th>Player</th>
-              <th>VP</th>
-              <th>Turns</th>
-              <th>Breakdown</th>
+              <th>{tr.t('colPlayer')}</th>
+              <th>{tr.t('colVp')}</th>
+              <th>{tr.t('colTurns')}</th>
+              <th>{tr.t('colBreakdown')}</th>
             </tr>
           </thead>
           <tbody>
@@ -33,7 +35,7 @@ export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave 
                 <td>{s.turns}</td>
                 <td>
                   {Object.entries(s.breakdown)
-                    .map(([id, row]) => `${cardName(id)} ×${row.count} (${row.vp})`)
+                    .map(([id, row]) => `${tr.card(id as CardId)} ×${row.count} (${row.vp})`)
                     .join(', ')}
                 </td>
               </tr>
@@ -45,17 +47,17 @@ export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave 
         {isHost ? (
           <>
             <button type="button" className="primary" onClick={onPlayAgain}>
-              Play again (same kingdom)
+              {tr.t('playAgain')}
             </button>
             <button type="button" onClick={onBackToLobby}>
-              Back to lobby
+              {tr.t('backToLobby')}
             </button>
           </>
         ) : (
-          <span className="muted">Waiting for the host…</span>
+          <span className="muted">{tr.t('waitingHost')}</span>
         )}
         <button type="button" onClick={onLeave}>
-          Leave
+          {tr.t('leave')}
         </button>
       </div>
     </main>

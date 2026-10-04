@@ -74,7 +74,7 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 .error { color: var(--danger); }
 
 /* Screens */
-.screen { max-width: 960px; margin: 0 auto; padding: 24px 16px; display: grid; gap: 16px; }
+.screen { max-width: 960px; margin: 0 auto; padding: 48px 16px 24px; display: grid; gap: 16px; }
 .centered { min-height: 100vh; display: grid; place-content: center; gap: 12px; text-align: center; padding: 16px; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .field { display: grid; gap: 4px; max-width: 320px; }
@@ -148,7 +148,7 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
     "turn turn"
     "hand hand";
   gap: 12px;
-  padding: 12px 16px;
+  padding: 48px 16px 12px;
   max-width: 1280px;
   margin: 0 auto;
 }
@@ -219,7 +219,7 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
   .board {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "tabs" "opponents" "turn" "play" "supply" "log" "hand";
-    padding: 8px 16px;
+    padding: 48px 16px 8px;
   }
   .board__tabs { display: flex; gap: 8px; grid-area: tabs; }
   .board__tabs button.is-active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
@@ -233,3 +233,7 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
   .card { width: 96px; min-height: 132px; }
   .card--small { width: 76px; min-height: 0; }
 }
+
+/* Language toggle */
+.lang-toggle { position: fixed; top: 8px; right: 8px; z-index: 20; display: flex; gap: 4px; }
+.lang-toggle button { padding: 4px 10px; font-size: 0.8rem; }

@@ -1,5 +1,6 @@
 import { KINGDOM_IDS } from '../../cards/registry';
 import type { CardId } from '../../engine/types';
+import { useLang } from '../../i18n/LangProvider';
 import { sortByCost } from '../moves';
 import { Card } from './Card';
 
@@ -10,13 +11,14 @@ interface Props {
 }
 
 export function KingdomPicker({ selected, onToggle, onRandomize }: Props) {
+  const { tr } = useLang();
   const full = selected.length >= 10;
   return (
     <div className="picker">
       <div className="picker__bar">
-        <span>{selected.length}/10 chosen</span>
+        <span>{tr.t('chosen', { n: selected.length })}</span>
         <button type="button" onClick={onRandomize}>
-          Randomize
+          {tr.t('randomize')}
         </button>
       </div>
       <div className="card-grid">

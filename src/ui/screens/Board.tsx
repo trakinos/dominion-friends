@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Intent } from '../../engine/types';
 import type { PlayerView } from '../../engine/view';
 import type { LobbyState } from '../../net/protocol';
-import { cardName } from '../../theme';
+import { useLang } from '../../i18n/LangProvider';
 import { Card } from '../components/Card';
 import { Hand } from '../components/Hand';
 import { Log } from '../components/Log';
@@ -13,10 +13,10 @@ import { TurnBar } from '../components/TurnBar';
 import { buyablePiles, intentForHandCard, isMyTurn, playableHand } from '../moves';
 
 type Tab = 'hand' | 'supply' | 'log';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'hand', label: 'Hand' },
-  { id: 'supply', label: 'Supply' },
-  { id: 'log', label: 'Log' },
+const TABS: { id: Tab; label: 'tabHand' | 'tabSupply' | 'tabLog' }[] = [
+  { id: 'hand', label: 'tabHand' },
+  { id: 'supply', label: 'tabSupply' },
+  { id: 'log', label: 'tabLog' },
 ];
 
 interface Props {
@@ -30,6 +30,7 @@ interface Props {
 }
 
 export function Board({ view, lobby, error, onIntent, onDismissError, onEndGame }: Props) {
+  const { tr } = useLang();
   const [tab, setTab] = useState<Tab>('hand');
   const names = view.players.map((p) => p.name);
   const online = (i: number) => lobby.players.find((p) => p.id === view.players[i].id)?.online ?? false;
@@ -41,7 +42,7 @@ export function Board({ view, lobby, error, onIntent, onDismissError, onEndGame 
       <nav className="board__tabs">
         {TABS.map((t) => (
           <button key={t.id} type="button" className={tab === t.id ? 'is-active' : ''} onClick={() => setTab(t.id)}>
-            {t.label}
+            {tr.t(t.label)}
           </button>
         ))}
       </nav>
@@ -55,7 +56,7 @@ export function Board({ view, lobby, error, onIntent, onDismissError, onEndGame 
       </section>
 
       <section className="board__play">
-        <h3>{isMyTurn(view) ? 'Your play area' : `${current.name}'s play area`}</h3>
+        <h3>{isMyTurn(view) ? tr.t('yourPlayArea') : tr.t('playArea', { name: current.name })}</h3>
         <div className="card-row">
           {current.inPlay.map((id, i) => (
             <Card key={i} id={id} size="small" />
@@ -78,25 +79,27 @@ export function Board({ view, lobby, error, onIntent, onDismissError, onEndGame 
           <button
             type="button"
             onClick={() => {
-              if (window.confirm('End the game for everyone and return to the lobby?')) onEndGame();
+              if (window.confirm(tr.t('endGameConfirm'))) onEndGame();
             }}
           >
-            End game
+            {tr.t('endGame')}
           </button>
         )}
         {view.waitingOn && (
           <div className="banner">
-            Waiting for {names[view.waitingOn.player]}
-            {online(view.waitingOn.player) ? '' : ' (offline)'}: {view.waitingOn.message}
+            {tr.t('waitingFor', {
+              name: names[view.waitingOn.player] + (online(view.waitingOn.player) ? '' : ` ${tr.t('offlineSuffix')}`),
+              message: tr.prompt(view.waitingOn),
+            })}
           </div>
         )}
         {!view.waitingOn && !isMyTurn(view) && !online(view.turn.player) && (
-          <div className="banner">Waiting for {current.name} (offline)…</div>
+          <div className="banner">{tr.t('waitingForOffline', { name: current.name })}</div>
         )}
         {error && (
           <div className="toast" role="alert">
-            <span>{error}</span>
-            <button type="button" onClick={onDismissError} aria-label="Dismiss">
+            <span>{tr.reason(error)}</span>
+            <button type="button" onClick={onDismissError} aria-label={tr.t('dismiss')}>
               ×
             </button>
           </div>
@@ -113,8 +116,8 @@ export function Board({ view, lobby, error, onIntent, onDismissError, onEndGame 
           }}
         />
         <div className="piles muted">
-          Deck {me.deckCount} · Discard {me.discardCount}
-          {me.discardTop && ` (top: ${cardName(me.discardTop)})`}
+          {tr.t('deckDiscard', { deck: me.deckCount, discard: me.discardCount })}
+          {me.discardTop && ` ${tr.t('discardTop', { card: tr.card(me.discardTop) })}`}
         </div>
       </section>
 

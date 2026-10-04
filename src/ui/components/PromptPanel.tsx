@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Prompt, PromptAnswer } from '../../engine/types';
+import { useLang } from '../../i18n/LangProvider';
 import { cardsAnswer, selectionHint, toggle, type Selection } from '../promptSelection';
 import { Card } from './Card';
 
@@ -9,23 +10,24 @@ interface Props {
 }
 
 export function PromptPanel({ prompt, onAnswer }: Props) {
+  const { tr } = useLang();
   const [selection, setSelection] = useState<Selection>([]);
   const answer = cardsAnswer(prompt, selection);
   const pick = (i: number) => setSelection((s) => toggle(prompt, s, i));
   const confirm = (
     <button type="button" className="primary" disabled={!answer} onClick={() => answer && onAnswer(answer)}>
-      Confirm
+      {tr.t('confirm')}
     </button>
   );
 
   return (
-    <div className="overlay" role="dialog" aria-modal="true" aria-label={prompt.message}>
+    <div className="overlay" role="dialog" aria-modal="true" aria-label={tr.prompt(prompt)}>
       <div className="prompt panel">
-        <h2>{prompt.message}</h2>
+        <h2>{tr.prompt(prompt)}</h2>
 
         {prompt.kind === 'chooseCards' && (
           <>
-            <p className="muted">{selectionHint(prompt)}</p>
+            <p className="muted">{selectionHint(prompt, tr)}</p>
             <div className="card-row">
               {prompt.cards.map((id, i) => {
                 const allowed = prompt.selectable.includes(i);
@@ -46,7 +48,7 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
 
         {prompt.kind === 'orderCards' && (
           <>
-            <p className="muted">{selectionHint(prompt)}</p>
+            <p className="muted">{selectionHint(prompt, tr)}</p>
             <div className="card-row">
               {prompt.cards.map((id, i) => (
                 <Card
@@ -60,7 +62,7 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
             </div>
             <div className="actions">
               <button type="button" onClick={() => setSelection([])}>
-                Reset
+                {tr.t('reset')}
               </button>
               {confirm}
             </div>
@@ -77,7 +79,7 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
             {prompt.optional && (
               <div className="actions">
                 <button type="button" onClick={() => onAnswer({ kind: 'supply', card: null })}>
-                  Skip
+                  {tr.t('skip')}
                 </button>
               </div>
             )}
@@ -94,9 +96,9 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
               </div>
             )}
             <div className="actions">
-              {prompt.options.map((label, i) => (
+              {prompt.options.map((_, i) => (
                 <button key={i} type="button" className={i === 0 ? 'primary' : ''} onClick={() => onAnswer({ kind: 'option', index: i })}>
-                  {label}
+                  {tr.option(prompt, i)}
                 </button>
               ))}
             </div>

@@ -1,5 +1,5 @@
 import type { PlayerView } from '../../engine/view';
-import { cardName } from '../../theme';
+import { useLang } from '../../i18n/LangProvider';
 
 interface Props {
   view: PlayerView;
@@ -7,6 +7,7 @@ interface Props {
 }
 
 export function Opponents({ view, online }: Props) {
+  const { tr } = useLang();
   return (
     <ul className="opponents">
       {view.players.map((p, i) =>
@@ -17,8 +18,8 @@ export function Opponents({ view, online }: Props) {
               <strong>{p.name}</strong>
             </span>
             <span className="muted">
-              Hand {p.handCount} · Deck {p.deckCount} · Discard {p.discardCount}
-              {p.discardTop ? ` (${cardName(p.discardTop)})` : ''}
+              {tr.t('oppCounts', { hand: p.handCount, deck: p.deckCount, discard: p.discardCount })}
+              {p.discardTop ? ` (${tr.card(p.discardTop)})` : ''}
             </span>
           </li>
         ),
