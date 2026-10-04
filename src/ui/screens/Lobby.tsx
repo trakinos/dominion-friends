@@ -43,7 +43,7 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
   function start() {
     if (!host) return;
     const result = host.start();
-    setStartError(result.ok ? null : tr.reason(result.reason));
+    setStartError(result.ok ? null : result.reason);
   }
 
   const enoughPlayers = lobby.players.length >= 2;
@@ -100,7 +100,7 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
           </button>
           {!enoughPlayers && <span className="muted">{tr.t('needPlayer')}</span>}
           {draft.length !== 10 && <span className="muted">{tr.t('choose10')}</span>}
-          {startError && <p className="error">{startError}</p>}
+          {startError && <p className="error">{tr.reason(startError)}</p>}
         </div>
       ) : (
         <p className="muted">{tr.t('waitingHostStart')}</p>

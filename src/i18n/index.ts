@@ -44,7 +44,7 @@ export function translator(lang: Lang): Translator {
     },
     option: (p, index) => own(d.options, p.optionIds[index]) ?? p.options[index],
     logLine: (entry, names) => {
-      const who = entry.player === null ? '' : `${names[entry.player] ?? '?'} `;
+      const who = entry.player === null ? '' : `${names[entry.player] ?? '—'} `;
       const cards = entry.cards && entry.cards.length > 0 ? ` ${entry.cards.map(card).join(', ')}` : '';
       return `${who}${own(d.log, entry.text) ?? entry.text}${cards}`;
     },

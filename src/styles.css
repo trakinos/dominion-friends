@@ -235,5 +235,6 @@ h3 { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 }
 
 /* Language toggle */
-.lang-toggle { position: fixed; top: 8px; right: 8px; z-index: 20; display: flex; gap: 4px; }
+/* absolute (not fixed) so it scrolls away with the page and never covers the board */
+.lang-toggle { position: absolute; top: 8px; right: 8px; z-index: 20; display: flex; gap: 4px; }
 .lang-toggle button { padding: 4px 10px; font-size: 0.8rem; }

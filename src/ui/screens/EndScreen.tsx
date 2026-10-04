@@ -1,5 +1,4 @@
-import type { GameResult } from '../../engine/types';
-import type { CardId } from '../../engine/types';
+import type { CardId, GameResult } from '../../engine/types';
 import { useLang } from '../../i18n/LangProvider';
 
 interface Props {
