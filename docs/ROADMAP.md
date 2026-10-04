@@ -12,11 +12,11 @@ Last updated: 2026-10-04
 
 ## Now
 
-### 1. Put it online
+### 1. Put it online ✅
 Nothing else is needed before friends anywhere can play.
-- [ ] Create a GitHub repository and push `main`.
-- [ ] Set **Settings → Pages → Source** to **GitHub Actions**.
-- [ ] Open the Pages URL and host a game from it.
+- [x] Create a GitHub repository and push `main`: https://github.com/trakinos/dominion-friends
+- [x] Set **Settings → Pages → Source** to **GitHub Actions**.
+- [x] Open the Pages URL and host a game from it: **https://trakinos.github.io/dominion-friends/**
 
 ### 2. Playtest with friends
 Real players will find what two tabs on one machine can't.
