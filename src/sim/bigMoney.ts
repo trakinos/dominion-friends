@@ -29,7 +29,7 @@ export function defaultAnswer(prompt: Prompt): PromptAnswer {
   }
 }
 
-/** Big Money: play any Action, play all Treasures, buy Province/Gold/Silver. */
+/** Big Money with kingdom cards: answer prompts, play Actions and Treasures, then buy Province/Gold/Silver or a kingdom card. */
 export function botMove(game: Game): { playerId: string; intent: Intent } {
   const s = game.state;
   if (s.pending) {

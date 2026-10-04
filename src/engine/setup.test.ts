@@ -51,4 +51,8 @@ describe('createGame', () => {
     expect(() => createGame({ players: players(2), kingdom: [...TEST_KINGDOM.slice(0, 9), 'cellar'], seed: 1 })).toThrow('Kingdom must have 10 different cards');
     expect(() => createGame({ players: players(2), kingdom: [...TEST_KINGDOM.slice(0, 9), 'copper'], seed: 1 })).toThrow('Not a kingdom card: copper');
   });
+
+  it('rejects duplicate player ids', () => {
+    expect(() => createGame({ players: [{ id: 'a', name: 'A' }, { id: 'a', name: 'B' }], kingdom: TEST_KINGDOM, seed: 1 })).toThrow('Player ids must be unique');
+  });
 });

@@ -25,6 +25,7 @@ export function freshTurn(player: number): TurnState {
 export function createGame(opts: SetupOptions): GameState {
   const n = opts.players.length;
   if (n < 2 || n > 4) throw new Error('Need 2-4 players');
+  if (new Set(opts.players.map((p) => p.id)).size !== n) throw new Error('Player ids must be unique');
   const kingdom = [...new Set(opts.kingdom)];
   if (opts.kingdom.length !== 10 || kingdom.length !== 10) throw new Error('Kingdom must have 10 different cards');
   for (const id of kingdom) {
