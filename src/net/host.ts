@@ -9,6 +9,8 @@ import type { Connection } from './transport';
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
+/** PeerJS refuses messages over ~16 KB on JSON channels, so each view carries only the recent log. */
+export const MAX_LOG_ENTRIES = 150;
 
 export interface HostOptions {
   random?: () => number;
@@ -80,7 +82,7 @@ export class HostSession {
         if (!seat) seat = this.hello(conn, msg.name, msg.token, isHost);
         return;
       }
-      if (seat) this.handleIntent(seat, conn, msg.intent);
+      if (seat && seat.conn === conn) this.handleIntent(seat, conn, msg.intent);
     });
     conn.onClose(() => {
       if (seat && seat.conn === conn) this.disconnected(seat);
@@ -197,7 +199,8 @@ export class HostSession {
 
   private sendView(seat: Seat): void {
     if (seat.conn && this.activeGame) {
-      send(seat.conn, { type: 'view', view: viewFor(this.activeGame.state, seat.id) });
+      const view = viewFor(this.activeGame.state, seat.id);
+      send(seat.conn, { type: 'view', view: { ...view, log: view.log.slice(-MAX_LOG_ENTRIES) } });
     }
   }
 

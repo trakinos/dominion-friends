@@ -27,7 +27,11 @@ function wrap(dc: DataConnection, onClosed?: () => void): Connection {
         cb();
       };
       dc.on('close', once);
-      dc.on('error', once);
+      dc.on('error', () => {
+        // A channel that errored may be half-broken; tear it down so the peer is released too.
+        dc.close();
+        once();
+      });
     },
     close() {
       dc.close();
@@ -117,7 +121,7 @@ export function connectToHost(code: string): Promise<Connection> {
     );
     peer.on('error', fail);
     peer.on('open', () => {
-      const dc = peer.connect(peerIdFor(code), { reliable: true, serialization: 'json' });
+      const dc = peer.connect(peerIdFor(code), { reliable: true, serialization: 'binary' });
       dc.on('error', fail);
       dc.on('close', () =>
         fail(new Error('Could not connect. The code may be wrong, or your network blocks peer-to-peer connections.')),
