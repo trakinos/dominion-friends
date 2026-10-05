@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Intent } from '../../engine/types';
 import type { PlayerView } from '../../engine/view';
+import type { LocalClock } from '../../net/guest';
 import type { LobbyState } from '../../net/protocol';
 import { useLang } from '../../i18n/LangProvider';
 import { Card } from '../components/Card';
@@ -12,8 +13,11 @@ import { Log } from '../components/Log';
 import { Opponents } from '../components/Opponents';
 import { PromptPanel } from '../components/PromptPanel';
 import { Supply } from '../components/Supply';
-import { TurnBar } from '../components/TurnBar';
-import { EMPTY_PILES_TO_END, buyablePiles, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
+import { TimerBar } from '../components/TimerBar';
+import { TurnActions } from '../components/TurnActions';
+import { TurnBoard } from '../components/TurnBoard';
+import { EMPTY_PILES_TO_END, buyablePiles, canStillPlayAction, endGameStatus, guardStillApplies, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
+import { playerColor } from '../playerColor';
 
 type Tab = 'hand' | 'supply' | 'log';
 const TABS: { id: Tab; label: 'tabHand' | 'tabSupply' | 'tabLog' }[] = [
@@ -29,27 +33,43 @@ interface Props {
   lobby: LobbyState;
   code: string;
   error: string | null;
+  /** The running turn or response clock, if the room has a turn timer. */
+  clock: LocalClock | null;
   onIntent(intent: Intent): void;
   onDismissError(): void;
   /** Only passed to the host: ends the game for everyone. */
   onEndGame?(): void;
 }
 
-export function Board({ view, lobby, code, error, onIntent, onDismissError, onEndGame }: Props) {
+export function Board({ view, lobby, code, error, clock, onIntent, onDismissError, onEndGame }: Props) {
   const { tr } = useLang();
   const [tab, setTab] = useState<Tab>('hand');
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [endInfo, setEndInfo] = useState(false);
+  const [guard, setGuard] = useState<{ intent: Intent; body: string; view: PlayerView } | null>(null);
   const ending = endGameStatus(view);
   const province = tr.card('province');
   const noAction = hasNoActionToPlay(view);
   const menu = useRef<HTMLDetailsElement>(null);
   const names = view.players.map((p) => p.name);
   const online = (i: number) => lobby.players.find((p) => p.id === view.players[i].id)?.online ?? false;
+  const colorOf = (i: number) => playerColor(lobby, view.players[i].id);
+  // The play area wears the active player's color; your dock always wears yours.
+  const activeTint = { '--player': colorOf(view.turn.player) } as CSSProperties;
+  const myTint = { '--player': colorOf(view.you) } as CSSProperties;
   const current = view.players[view.turn.player];
   const me = view.players[view.you];
   const mine = isMyTurn(view);
   const idle = mine && view.prompt === null && view.waitingOn === null;
+
+  /** Moves that would end the Action phase early ask first while an Action could still be played. */
+  function guarded(intent: Intent, body: string) {
+    if (canStillPlayAction(view)) setGuard({ intent, body, view });
+    else onIntent(intent);
+  }
+
+  // A new view (timeout, prompt, next turn) closes the guard: its intent was built for the old one.
+  useEffect(() => setGuard(null), [view]);
 
   useEffect(() => {
     if (!error) return;
@@ -64,7 +84,7 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
           {tr.t('appName')}
           <span className="room">{code}</span>
         </div>
-        <Opponents view={view} online={online} />
+        <Opponents view={view} online={online} colorOf={colorOf} />
         {onEndGame && (
           <details className="menu" ref={menu}>
             <summary aria-label={tr.t('moreOptions')} title={tr.t('moreOptions')}>
@@ -129,7 +149,7 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
           view={view}
           buyable={buyablePiles(view)}
           buying={idle && view.turn.phase === 'buy'}
-          onBuy={(card) => onIntent({ type: 'buy', card })}
+          onBuy={(card) => guarded({ type: 'buy', card }, tr.t('guardBuy', { card: tr.card(card) }))}
         />
       </section>
 
@@ -140,7 +160,11 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
         <Log entries={view.log} names={names} />
       </section>
 
-      <section className="board__play zone">
+      <section className="board__status" style={activeTint} aria-label={tr.t('turnStatus')}>
+        <TurnBoard view={view} names={names} clock={clock} />
+      </section>
+
+      <section className="board__play zone" style={activeTint}>
         <div className="zone__head">
           <h2>{mine ? tr.t('yourPlayArea') : tr.t('playArea', { name: current.name })}</h2>
           <span className="zone__hint">{tr.t('playAreaHint')}</span>
@@ -158,12 +182,11 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
         </div>
       </section>
 
-      <div className="board__dock">
+      <div className={`board__dock ${mine ? 'is-mine' : ''}`} style={myTint}>
         <section className="board__turn">
-          <TurnBar
+          <TurnActions
             view={view}
-            names={names}
-            onPlayAll={() => onIntent({ type: 'playAllTreasures' })}
+            onPlayAll={() => guarded({ type: 'playAllTreasures' }, tr.t('guardAllTreasures'))}
             onEndPhase={() => onIntent({ type: 'endPhase' })}
           />
           {view.waitingOn && (
@@ -173,6 +196,7 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
                 name: names[view.waitingOn.player] + (online(view.waitingOn.player) ? '' : ` ${tr.t('offlineSuffix')}`),
                 message: tr.prompt(view.waitingOn),
               })}
+              {clock?.kind === 'response' && <TimerBar clock={clock} />}
             </div>
           )}
           {!view.waitingOn && !mine && !online(view.turn.player) && (
@@ -206,7 +230,9 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
             active={idle}
             onPlay={(i) => {
               const intent = intentForHandCard(view, i);
-              if (intent) onIntent(intent);
+              if (!intent) return;
+              if (intent.type === 'playTreasure') guarded(intent, tr.t('guardTreasure'));
+              else onIntent(intent);
             }}
           />
           <div className="stack">
@@ -235,7 +261,23 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
         <PromptPanel
           key={JSON.stringify(view.prompt)}
           prompt={view.prompt}
+          clock={clock}
           onAnswer={(answer) => onIntent({ type: 'answerPrompt', answer })}
+        />
+      )}
+
+      {guard && guardStillApplies(guard.view, view) && (
+        <ConfirmDialog
+          tone="neutral"
+          title={tr.t('guardTitle')}
+          body={guard.body}
+          cancel={tr.t('guardCancel')}
+          confirm={tr.t('endActions')}
+          onCancel={() => setGuard(null)}
+          onConfirm={() => {
+            setGuard(null);
+            onIntent(guard.intent);
+          }}
         />
       )}
 

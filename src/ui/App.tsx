@@ -132,6 +132,7 @@ export function App() {
           code={active.code}
           shareLink={joinLink(location.origin + location.pathname, active.code)}
           host={active.host}
+          onSetColor={(c) => active.session.setColor(c)}
           onLeave={leave}
         />
       );
@@ -150,6 +151,7 @@ export function App() {
       return (
         <EndScreen
           result={state.view.result}
+          lobby={state.lobby}
           isHost={active.host !== null}
           onPlayAgain={() => active.host?.playAgain()}
           onBackToLobby={() => active.host?.backToLobby()}
@@ -164,6 +166,7 @@ export function App() {
         lobby={state.lobby}
         code={active.code}
         error={state.error}
+        clock={state.clock}
         onIntent={(intent) => active.session.sendIntent(intent)}
         onDismissError={() => active.session.dismissError()}
         onEndGame={active.host ? () => active.host?.backToLobby() : undefined}

@@ -1,10 +1,13 @@
 import type { CardId, Intent } from '../engine/types';
 import type { PlayerView } from '../engine/view';
+import { isPlayerColor, type PlayerColorId } from '../theme/playerColors';
+import type { ClockInfo } from './turnClock';
 
 export interface LobbyPlayer {
   id: string;
   name: string;
   online: boolean;
+  color: PlayerColorId;
 }
 
 export interface LobbyState {
@@ -12,16 +15,18 @@ export interface LobbyState {
   players: LobbyPlayer[];
   kingdom: CardId[];
   inGame: boolean;
+  turnTimer: number | null;
 }
 
 export type GuestMessage =
   | { type: 'hello'; name: string; token: string | null }
-  | { type: 'intent'; intent: Intent };
+  | { type: 'intent'; intent: Intent }
+  | { type: 'setColor'; color: PlayerColorId };
 
 export type HostMessage =
   | { type: 'welcome'; playerId: string; token: string }
   | { type: 'lobby'; lobby: LobbyState }
-  | { type: 'view'; view: PlayerView }
+  | { type: 'view'; view: PlayerView; clock: ClockInfo | null }
   | { type: 'error'; reason: string };
 
 export const MAX_NAME_LENGTH = 20;
@@ -46,6 +51,7 @@ export function parseGuestMessage(raw: unknown): GuestMessage | null {
   if (raw.type === 'intent' && isRecord(raw.intent) && typeof raw.intent.type === 'string') {
     return { type: 'intent', intent: raw.intent as unknown as Intent };
   }
+  if (raw.type === 'setColor' && isPlayerColor(raw.color)) return { type: 'setColor', color: raw.color };
   return null;
 }
 
@@ -59,10 +65,16 @@ export function parseHostMessage(raw: unknown): HostMessage | null {
     case 'lobby':
       return isRecord(raw.lobby) ? { type: 'lobby', lobby: raw.lobby as unknown as LobbyState } : null;
     case 'view':
-      return isRecord(raw.view) ? { type: 'view', view: raw.view as unknown as PlayerView } : null;
+      return isRecord(raw.view) ? { type: 'view', view: raw.view as unknown as PlayerView, clock: parseClock(raw.clock) } : null;
     case 'error':
       return typeof raw.reason === 'string' ? { type: 'error', reason: raw.reason } : null;
     default:
       return null;
   }
+}
+
+function parseClock(raw: unknown): ClockInfo | null {
+  if (!isRecord(raw) || (raw.kind !== 'turn' && raw.kind !== 'response')) return null;
+  const { remainingMs, totalMs } = raw;
+  return typeof remainingMs === 'number' && typeof totalMs === 'number' ? { kind: raw.kind, remainingMs, totalMs } : null;
 }

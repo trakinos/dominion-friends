@@ -134,4 +134,17 @@ describe('HostSession game flow', () => {
     expect(lobby.players.map((p) => p.name)).toEqual(['Ana', 'Bo']);
     expect(host.game).toBeNull();
   });
+
+  it('keeps a color on rejoin and locks colors during a game', async () => {
+    const { host, clients } = await started(['Ana', 'Bo']);
+    const bo = clients[1];
+    bo.send({ type: 'setColor', color: 'pink' });
+    await flush();
+    expect(bo.last('error')).toEqual({ type: 'error', reason: 'Game in progress' });
+    const token = bo.last('welcome')!.token;
+    bo.close();
+    await flush();
+    await join(host, 'Bo', { token });
+    expect(host.lobby.players[1].color).toBe('red');
+  });
 });

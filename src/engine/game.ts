@@ -60,6 +60,11 @@ export class Game {
     this.state.log.push(cards ? { player, text, cards: [...cards] } : { player, text });
   }
 
+  /** A log line from outside the rules, such as the host's timer. */
+  note(player: number | null, text: string): void {
+    this.log(player, text);
+  }
+
   private validHandIndex(i: number): boolean {
     return Number.isInteger(i) && i >= 0 && i < this.current.hand.length;
   }

@@ -23,6 +23,12 @@ describe('parseGuestMessage', () => {
     expect(parseGuestMessage({ type: 'intent' })).toBeNull();
   });
 
+  it('parses setColor with a palette color only', () => {
+    expect(parseGuestMessage({ type: 'setColor', color: 'pink' })).toEqual({ type: 'setColor', color: 'pink' });
+    expect(parseGuestMessage({ type: 'setColor', color: 'orange' })).toBeNull();
+    expect(parseGuestMessage({ type: 'setColor' })).toBeNull();
+  });
+
   it('rejects anything else', () => {
     for (const raw of [null, 'hello', 42, [], { type: 'ping' }, {}]) expect(parseGuestMessage(raw)).toBeNull();
   });
@@ -34,6 +40,15 @@ describe('parseHostMessage', () => {
     expect(parseHostMessage({ type: 'lobby', lobby: { hostId: 'p0' } })?.type).toBe('lobby');
     expect(parseHostMessage({ type: 'view', view: { you: 0 } })?.type).toBe('view');
     expect(parseHostMessage({ type: 'error', reason: 'Room full' })).toEqual({ type: 'error', reason: 'Room full' });
+  });
+
+  it('parses a view with or without a clock', () => {
+    const view = { you: 0 };
+    expect(parseHostMessage({ type: 'view', view, clock: { kind: 'turn', remainingMs: 5, totalMs: 10 } })).toEqual({
+      type: 'view', view, clock: { kind: 'turn', remainingMs: 5, totalMs: 10 },
+    });
+    expect(parseHostMessage({ type: 'view', view })).toEqual({ type: 'view', view, clock: null });
+    expect(parseHostMessage({ type: 'view', view, clock: { kind: 'nope', remainingMs: 5, totalMs: 10 } })).toEqual({ type: 'view', view, clock: null });
   });
 
   it('rejects malformed messages', () => {

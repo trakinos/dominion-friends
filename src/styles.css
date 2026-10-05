@@ -230,6 +230,15 @@ button.link:hover { color: var(--text); }
 .seats__name { font-weight: 800; }
 .seats__status { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 .seats__ghost { width: 32px; height: 32px; border-radius: 50%; border: 2px dashed var(--border); }
+.swatches { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 2px 42px; }
+.swatch {
+  width: 26px; height: 26px; min-height: 0; padding: 0; border-radius: 99px;
+  border: 2px solid var(--surface); box-shadow: 0 0 0 2px transparent; cursor: pointer;
+}
+.swatch.is-on { box-shadow: 0 0 0 2px var(--text); }
+.swatch:disabled { opacity: 0.25; cursor: not-allowed; }
+.timer-setting { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; font-weight: 700; }
+.timer-setting select { min-height: 36px; padding: 4px 10px; border-radius: var(--r-md); border: 2px solid var(--border); background: var(--surface); color: var(--text); font: inherit; }
 .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--surface); border: 2px solid var(--muted); flex: none; }
 .dot--on { background: var(--online); border-color: var(--surface); }
 .avatar {
@@ -455,6 +464,7 @@ button.link:hover { color: var(--text); }
   grid-template-areas:
     'top top'
     'supply log'
+    'status log'
     'play log'
     'dock dock';
   gap: 16px;
@@ -481,7 +491,19 @@ button.link:hover { color: var(--text); }
 .supply__basics .pile__thumb { width: 30px; height: 36px; font-size: 13px; }
 .supply__basics .pile__name { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; }
 .supply__kingdom { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-.board__play { grid-area: play; background: var(--table); box-shadow: inset 0 2px 10px rgb(60 40 20 / 0.18); display: flex; flex-direction: column; min-height: 190px; }
+/* turn status + play area: one block tinted with the active player's color (--player, set inline) */
+.board__status {
+  grid-area: status; margin-bottom: -16px; padding: 10px 16px; z-index: 1;
+  border-radius: var(--r-lg) var(--r-lg) 0 0; border: 2px solid var(--player, var(--accent)); border-bottom: 0;
+  background: color-mix(in srgb, var(--player, var(--accent)) 16%, var(--surface));
+}
+.board__status .banner--info { margin: 10px 0 0; }
+.board__play {
+  grid-area: play; display: flex; flex-direction: column; min-height: 190px;
+  border: 2px solid var(--player, var(--accent)); border-top: 0; border-radius: 0 0 var(--r-lg) var(--r-lg);
+  background: color-mix(in srgb, var(--player, var(--accent)) 12%, var(--table));
+  box-shadow: inset 0 2px 10px rgb(60 40 20 / 0.18);
+}
 .table-row { display: flex; gap: 12px; align-items: flex-end; flex: 1; padding-top: 8px; flex-wrap: wrap; }
 .trash { margin-left: auto; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--muted); }
 .trash__slot {
@@ -551,23 +573,28 @@ button.link:hover { color: var(--text); }
 .menu__list button { border: 0; background: transparent; justify-content: flex-start; min-height: 40px; }
 .menu__list button:hover { background: var(--surface-2); }
 
-/* dock: turn bar + hand, pinned to the bottom of the screen */
+/* dock: your turn buttons + hand, pinned to the bottom of the screen; in your color on your turn */
 .board__dock {
   grid-area: dock;
   position: sticky; bottom: 0; z-index: 10;
   margin: 0 -24px;
   padding: 12px 24px 16px;
-  background: var(--surface); border-top: 2px solid var(--border); box-shadow: var(--e3);
+  background: var(--surface);
+  border-top: 3px solid var(--border); box-shadow: var(--e3);
   border-radius: 22px 22px 0 0;
 }
+.board__dock.is-mine {
+  background: color-mix(in srgb, var(--player) 10%, var(--surface));
+  border-top-color: var(--player);
+}
 .board__turn { display: grid; gap: 10px; }
-.turnbar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.turnboard { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .turn-pill {
   font-family: var(--font-display); font-weight: 800; font-size: 17px;
-  padding: 6px 14px; border-radius: 99px; background: var(--accent); color: var(--accent-text);
+  padding: 6px 14px; border-radius: 99px; background: var(--player, var(--accent)); color: #fff;
   animation: pop var(--dur-slow) var(--ease-spring);
 }
-.turn-pill.is-other { background: var(--surface-2); color: var(--text); animation: none; }
+.turn-pill.is-other { animation: none; }
 .phases { list-style: none; margin: 0; padding: 3px; display: flex; background: var(--surface-2); border-radius: 99px; }
 .phases li { padding: 5px 14px; border-radius: 99px; font-weight: 800; font-size: 13px; color: var(--muted); }
 .phases { gap: 14px; }
@@ -579,7 +606,16 @@ button.link:hover { color: var(--text); }
 .counters { display: flex; gap: 14px; }
 .ctr { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; color: var(--muted); }
 .ctr b { font-family: var(--font-display); font-size: 20px; color: var(--text); }
-.turnbar__btns { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+.turn-actions { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.timer { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; min-width: 120px; }
+.timer .ico { width: 15px; height: 15px; }
+.timer__track { flex: 1; height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--text) 12%, transparent); overflow: hidden; }
+.timer__fill { display: block; height: 100%; border-radius: inherit; background: var(--player, var(--accent)); transition: width 120ms linear; }
+.timer.is-low { color: var(--danger); animation: pulse 1s ease-in-out infinite; }
+.timer.is-low .timer__fill { background: var(--danger); }
+.turnboard .timer { margin-left: auto; }
+.banner .timer { margin-left: auto; }
+.prompt .timer { width: 100%; }
 .banner {
   display: flex; align-items: center; gap: 10px; padding: 8px 14px;
   border-radius: var(--r-md); background: var(--surface-2); font-weight: 700; font-size: 14px;
@@ -660,6 +696,27 @@ button.link:hover { color: var(--text); }
 .trophy .ico { width: 42px; height: 42px; }
 .end h1 { font-size: clamp(36px, 6vw, 64px); margin: 0; }
 .end .table-wrap { width: 100%; max-width: 1000px; }
+.tally { width: 100%; max-width: 760px; display: grid; gap: 12px; justify-items: stretch; }
+.end .tally__title { font-size: clamp(28px, 4vw, 40px); margin: 0; }
+.tally__row {
+  display: grid; grid-template-columns: auto minmax(70px, 140px) minmax(0, 1fr) 48px; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: var(--r-lg); background: var(--surface); border: 2px solid var(--border);
+  transition: box-shadow var(--dur-slow) var(--ease-out), border-color var(--dur-slow);
+}
+.tally__row.is-winner { border-color: var(--player); box-shadow: 0 0 0 4px color-mix(in srgb, var(--player) 30%, transparent), var(--e2); }
+.tally__name { font-weight: 800; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tally__track { position: relative; height: 22px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--text) 10%, transparent); }
+.tally__fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--player); transition: width 220ms var(--ease-out); }
+/* The track clips, so the chip fits inside it and pops in place instead of dropping in from above. */
+.tally__chip { position: absolute; right: 6px; top: 50%; height: 18px; translate: 0 -50%; animation: chipIn var(--dur-base) var(--ease-spring); }
+.tally__chip.is-minus { background: var(--danger); color: var(--danger-text); }
+.tally__vp { font-family: var(--font-display); font-size: 24px; text-align: right; }
+.tally > button { justify-self: center; }
+.end__reveal { display: grid; justify-items: center; gap: 18px; width: 100%; animation: rise var(--dur-slow) var(--ease-out); }
+@media (max-width: 767px) {
+  .tally__row { grid-template-columns: auto minmax(0, 1fr) 40px; }
+  .tally__track { grid-column: 1 / -1; order: 1; }
+}
 .scores { width: 100%; border-collapse: separate; border-spacing: 0 8px; font-size: 15px; text-align: left; }
 .scores th { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 14px; text-align: left; }
 .scores td { background: var(--surface); padding: 12px 14px; border-top: 2px solid var(--border); border-bottom: 2px solid var(--border); vertical-align: middle; }
@@ -691,9 +748,11 @@ button.link:hover { color: var(--text); }
 @keyframes fade { from { opacity: 0; } }
 @keyframes grow { from { opacity: 0; transform: scale(0.96); } }
 @keyframes sheet { from { transform: translateY(100%); } }
+@keyframes chipIn { 0% { transform: scale(0.8); opacity: 0; } }
 @keyframes pop { 0% { transform: translateY(-10px) scale(0.9); opacity: 0; } }
 @keyframes fanL { to { transform: rotate(-4deg) translateX(-4px); } }
 @keyframes fanR { to { transform: rotate(4deg) translateX(4px); } }
+@keyframes pulse { 50% { opacity: 0.55; } }
 
 /* ===== Tablet / desktop narrow ===== */
 @media (max-width: 1100px) {
@@ -719,7 +778,7 @@ button.link:hover { color: var(--text); }
 
   .board {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'top' 'turn' 'tabs' 'supply' 'log' 'hand' 'play';
+    grid-template-areas: 'top' 'status' 'tabs' 'turn' 'supply' 'log' 'hand' 'play';
     gap: 12px;
     padding: 0 16px 16px;
   }
@@ -733,18 +792,24 @@ button.link:hover { color: var(--text); }
   .board__tabs button { flex: 1; border: 0; background: transparent; border-radius: 99px; min-height: 40px; color: var(--muted); }
   .board__tabs button.is-active { background: var(--surface); color: var(--text); box-shadow: var(--e1); }
   .board__dock { display: contents; }
-  .board__turn {
-    grid-area: turn; position: sticky; top: 0; z-index: 10;
-    padding: 10px 12px; border-radius: var(--r-lg); background: var(--surface); border: 2px solid var(--border); box-shadow: var(--e1);
+  .board__status {
+    position: sticky; top: 0; z-index: 10; margin: 0; padding: 8px 10px;
+    border-radius: var(--r-lg); border-bottom: 2px solid var(--player, var(--accent)); box-shadow: var(--e1);
   }
-  .turnbar { gap: 10px; }
+  .board__turn { grid-area: turn; }
+  .board__turn:empty { display: none; }
+  .turnboard { gap: 10px; }
   .turn-pill { font-size: 14px; padding: 4px 10px; }
   .phases li { padding: 5px 9px; white-space: nowrap; }
   .ctr { font-size: 0; gap: 4px; }
   .ctr b { font-size: 17px; }
-  .turnbar__btns { margin-left: 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
-  .turnbar__btns button { padding: 4px 8px; font-size: 13px; white-space: normal; line-height: 1.15; }
-  .board__hand { grid-area: hand; flex-wrap: wrap; gap: 4px 8px; margin: 0; }
+  .turn-actions { margin-left: 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+  .turn-actions button { padding: 4px 8px; font-size: 13px; white-space: normal; line-height: 1.15; }
+  .board__hand {
+    grid-area: hand; flex-wrap: wrap; gap: 4px 8px; margin: 0; padding: 8px; border-radius: var(--r-lg);
+    border: 2px solid var(--border); background: var(--surface);
+  }
+  .board__dock.is-mine .board__hand { border-color: var(--player); background: color-mix(in srgb, var(--player) 10%, var(--surface)); }
   .board__hand .hand { order: -1; flex-basis: 100%; }
   .board__hand .stack { flex: 1; flex-direction: row; justify-content: center; }
   .board__hand .stack .cardback, .board__hand .stack .card { display: none; }
@@ -755,7 +820,7 @@ button.link:hover { color: var(--text); }
   .card--small .card__art { height: 40px; }
   .card--big { width: 150px; height: 226px; }
   .card--big .card__art { height: 76px; }
-  .board__play { min-height: 0; }
+  .board__play { min-height: 0; border-top: 2px solid var(--player, var(--accent)); border-radius: var(--r-lg); }
   .board__log { min-height: 0; }
   .log { position: static; max-height: 60vh; }
   .toast { bottom: 16px; }
@@ -788,10 +853,13 @@ button.link:hover { color: var(--text); }
   .scores tr.is-winner { border-color: var(--coin-edge); }
   .scores td, .scores td:first-child, .scores td:last-child { border: 0; border-radius: 0; padding: 6px 12px; }
   .scores__rank { display: none !important; }
+  .end { padding-top: 56px; } /* clear the language toggle, like .lobby__header */
   .end .actions button { flex: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
   .card.is-highlight, .card.is-highlight:hover, .card.is-selected, .pile.is-highlight { transform: none; }
+  .timer.is-low { animation: none; }
+  .tally__fill, .tally__chip, .end__reveal { transition: none; animation: none; }
 }

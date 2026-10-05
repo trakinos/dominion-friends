@@ -32,6 +32,19 @@ export function hasNoActionToPlay(view: PlayerView): boolean {
   return view.turn.actions < 1 || !view.hand.some((id) => isType(id, 'action'));
 }
 
+/** Your Action phase and you could still play an Action: Treasures and buys would end it early. */
+export function canStillPlayAction(view: PlayerView): boolean {
+  return canAct(view) && view.turn.phase === 'action' && view.turn.actions > 0 && view.hand.some((id) => isType(id, 'action'));
+}
+
+/**
+ * The click guard was opened on `openedOn`. Its intent is only safe to send while that is still the
+ * current view: any newer view (a timeout, a prompt, the next turn) may have moved the hand under it.
+ */
+export function guardStillApplies(openedOn: PlayerView, view: PlayerView): boolean {
+  return openedOn === view && canStillPlayAction(view);
+}
+
 /** The game ends after a turn where the Province pile, or any 3 piles, run out. */
 export const EMPTY_PILES_TO_END = 3;
 

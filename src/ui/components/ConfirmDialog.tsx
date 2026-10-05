@@ -7,15 +7,16 @@ interface Props {
   confirm: string;
   onCancel(): void;
   onConfirm(): void;
+  tone?: 'danger' | 'neutral';
 }
 
-/** A small destructive-action confirmation, styled like the prompt dialog. */
-export function ConfirmDialog({ title, body, cancel, confirm, onCancel, onConfirm }: Props) {
+/** A small confirmation, styled like the prompt dialog. */
+export function ConfirmDialog({ title, body, cancel, confirm, onCancel, onConfirm, tone = 'danger' }: Props) {
   return (
     <div className="overlay" role="alertdialog" aria-modal="true" aria-label={title} onClick={onCancel}>
       <div className="prompt prompt--confirm panel" onClick={(e) => e.stopPropagation()}>
         <div className="sig">
-          <Icon name="x" />
+          <Icon name={tone === 'danger' ? 'x' : 'alert'} />
         </div>
         <h2>{title}</h2>
         <p className="muted">{body}</p>
@@ -23,7 +24,7 @@ export function ConfirmDialog({ title, body, cancel, confirm, onCancel, onConfir
           <button type="button" autoFocus onClick={onCancel}>
             {cancel}
           </button>
-          <button type="button" className="danger-fill" onClick={onConfirm}>
+          <button type="button" className={tone === 'danger' ? 'danger-fill' : 'primary'} onClick={onConfirm}>
             {confirm}
           </button>
         </div>

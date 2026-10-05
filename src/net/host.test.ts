@@ -81,6 +81,65 @@ describe('HostSession lobby', () => {
     expect(ana.last('lobby')!.lobby.kingdom).toEqual(DEFAULT_KINGDOM);
   });
 
+  it('gives each new player the first free color', async () => {
+    const host = new HostSession(seededHostOptions());
+    await join(host, 'Ana', { local: true });
+    await join(host, 'Bo');
+    expect(host.lobby.players.map((p) => p.color)).toEqual(['blue', 'red']);
+  });
+
+  it('lets a player pick a free color and refuses a taken one', async () => {
+    const host = new HostSession(seededHostOptions());
+    const ana = await join(host, 'Ana', { local: true });
+    const bo = await join(host, 'Bo');
+    bo.send({ type: 'setColor', color: 'green' });
+    await flush();
+    expect(ana.last('lobby')!.lobby.players[1].color).toBe('green');
+    bo.send({ type: 'setColor', color: 'blue' });
+    await flush();
+    expect(bo.last('error')).toEqual({ type: 'error', reason: 'That color is taken' });
+    expect(host.lobby.players[1].color).toBe('green');
+  });
+
+  it('frees a color when its player leaves the lobby', async () => {
+    const host = new HostSession(seededHostOptions());
+    await join(host, 'Ana', { local: true });
+    const bo = await join(host, 'Bo');
+    bo.close();
+    await flush();
+    await join(host, 'Cy');
+    expect(host.lobby.players.map((p) => p.color)).toEqual(['blue', 'red']);
+  });
+
+  it('gives a guest who refreshes in the lobby their color back', async () => {
+    const host = new HostSession(seededHostOptions());
+    await join(host, 'Ana', { local: true });
+    const bo = await join(host, 'Bo');
+    const token = bo.last('welcome')!.token;
+    bo.send({ type: 'setColor', color: 'green' });
+    await flush();
+    bo.close();
+    await flush();
+    await join(host, 'Bo', { token });
+    expect(host.lobby.players.map((p) => [p.name, p.color])).toEqual([['Ana', 'blue'], ['Bo', 'green']]);
+  });
+
+  it('gives a returning guest the first free color if theirs was taken meanwhile', async () => {
+    const host = new HostSession(seededHostOptions());
+    await join(host, 'Ana', { local: true });
+    const bo = await join(host, 'Bo');
+    const token = bo.last('welcome')!.token;
+    bo.send({ type: 'setColor', color: 'green' });
+    await flush();
+    bo.close();
+    await flush();
+    const cy = await join(host, 'Cy');
+    cy.send({ type: 'setColor', color: 'green' });
+    await flush();
+    await join(host, 'Bo', { token });
+    expect(host.lobby.players.map((p) => [p.name, p.color])).toEqual([['Ana', 'blue'], ['Cy', 'green'], ['Bo', 'red']]);
+  });
+
   it('starts with the First Game kingdom', () => {
     expect(new HostSession(seededHostOptions()).lobby.kingdom).toEqual(DEFAULT_KINGDOM);
   });

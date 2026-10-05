@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from '../engine/game';
 import { newState, setZones } from '../engine/testkit';
+import type { Prompt } from '../engine/types';
 import { viewFor } from '../engine/view';
-import { buyablePiles, canPlayAllTreasures, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
+import { buyablePiles, canPlayAllTreasures, canStillPlayAction, endGameStatus, guardStillApplies, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
 
 function stateWithHand(hand: string[]) {
   const state = newState();
@@ -28,6 +29,30 @@ describe('moves', () => {
     setZones(state, 1, { hand: ['village', 'copper'] });
     expect(playableHand(viewFor(state, 'p1'))).toEqual([false, false]);
     expect(canPlayAllTreasures(viewFor(state, 'p1'))).toBe(false);
+  });
+
+  it('knows when an Action could still be played', () => {
+    expect(canStillPlayAction(viewFor(stateWithHand(['village', 'copper']), 'p0'))).toBe(true);
+    expect(canStillPlayAction(viewFor(stateWithHand(['copper', 'estate']), 'p0'))).toBe(false);
+    const noActions = stateWithHand(['village', 'copper']);
+    noActions.turn.actions = 0;
+    expect(canStillPlayAction(viewFor(noActions, 'p0'))).toBe(false);
+    const buying = stateWithHand(['village', 'copper']);
+    buying.turn.phase = 'buy';
+    expect(canStillPlayAction(viewFor(buying, 'p0'))).toBe(false);
+    expect(canStillPlayAction(viewFor(stateWithHand(['village']), 'p1'))).toBe(false);
+  });
+
+  it('keeps the click guard only on the view it was opened on', () => {
+    const state = stateWithHand(['village', 'copper']);
+    const opened = viewFor(state, 'p0');
+    expect(guardStillApplies(opened, opened)).toBe(true);
+    // Any newer view (a timeout, a prompt, the next turn) closes it, even if it looks the same.
+    expect(guardStillApplies(opened, viewFor(state, 'p0'))).toBe(false);
+    const buying = stateWithHand(['village', 'copper']);
+    buying.turn.phase = 'buy';
+    const later = viewFor(buying, 'p0');
+    expect(guardStillApplies(later, later)).toBe(false);
   });
 
   it('stops Actions with no Actions left and Treasures after buying', () => {
@@ -97,5 +122,31 @@ describe('moves', () => {
     expect(groups.treasure).toEqual(['copper', 'silver', 'gold']);
     expect(groups.victory).toEqual(['estate', 'duchy', 'province', 'curse']);
     expect(groups.kingdom).toHaveLength(10);
+  });
+});
+
+describe('canStillPlayAction while a prompt is open', () => {
+  const prompt = (player: number): Prompt => ({ kind: 'chooseCards', id: 'discardDownTo', player, message: 'm', cards: ['copper'], selectable: [0], min: 0, max: 1 });
+
+  it('is false while my own prompt is open', () => {
+    const state = stateWithHand(['village', 'copper']);
+    state.pending = prompt(0);
+    const view = viewFor(state, 'p0');
+    expect(view.prompt).not.toBeNull();
+    expect(canStillPlayAction(view)).toBe(false);
+  });
+
+  it('is false while waiting on another player', () => {
+    const state = stateWithHand(['village', 'copper']);
+    state.pending = prompt(1);
+    const view = viewFor(state, 'p0');
+    expect(view.waitingOn).not.toBeNull();
+    expect(canStillPlayAction(view)).toBe(false);
+  });
+
+  it('is false once the game is over', () => {
+    const state = stateWithHand(['village', 'copper']);
+    state.result = { winners: ['p0'], scores: [] };
+    expect(canStillPlayAction(viewFor(state, 'p0'))).toBe(false);
   });
 });

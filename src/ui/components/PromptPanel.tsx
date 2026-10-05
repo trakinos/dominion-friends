@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import type { Prompt, PromptAnswer } from '../../engine/types';
+import type { LocalClock } from '../../net/guest';
 import { useLang } from '../../i18n/LangProvider';
 import { cardsAnswer, selectionHint, toggle, type Selection } from '../promptSelection';
 import { Card } from './Card';
+import { TimerBar } from './TimerBar';
 
 interface Props {
   prompt: Prompt;
   onAnswer(answer: PromptAnswer): void;
+  /** The attack-response clock, when the room has a turn timer. */
+  clock?: LocalClock | null;
 }
 
-export function PromptPanel({ prompt, onAnswer }: Props) {
+export function PromptPanel({ prompt, onAnswer, clock }: Props) {
   const { tr } = useLang();
   const [selection, setSelection] = useState<Selection>([]);
   const answer = cardsAnswer(prompt, selection);
@@ -23,6 +27,7 @@ export function PromptPanel({ prompt, onAnswer }: Props) {
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label={tr.prompt(prompt)}>
       <div className="prompt panel">
+        {clock?.kind === 'response' && <TimerBar clock={clock} />}
         <h2>{tr.prompt(prompt)}</h2>
 
         {prompt.kind === 'chooseCards' && (
