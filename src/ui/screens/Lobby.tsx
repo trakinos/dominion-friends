@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_KINGDOM } from '../../cards/registry';
 import type { CardId } from '../../engine/types';
-import { MAX_PLAYERS, type HostSession } from '../../net/host';
+import { MAX_PLAYERS, TURN_TIMER_OPTIONS, type HostSession } from '../../net/host';
 import type { LobbyState } from '../../net/protocol';
 import { useLang } from '../../i18n/LangProvider';
+import { colorHex, type PlayerColorId } from '../../theme/playerColors';
 import { Avatar } from '../components/Avatar';
+import { ColorPicker } from '../components/ColorPicker';
 import { Icon } from '../components/Icon';
 import { KingdomPicker } from '../components/KingdomPicker';
 import { Pile } from '../components/Pile';
@@ -16,10 +18,11 @@ interface Props {
   code: string;
   shareLink: string;
   host: HostSession | null;
+  onSetColor(color: PlayerColorId): void;
   onLeave(): void;
 }
 
-export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
+export function Lobby({ lobby, me, code, shareLink, host, onSetColor, onLeave }: Props) {
   const { tr } = useLang();
   const [draft, setDraft] = useState<CardId[]>(lobby.kingdom);
   const [startError, setStartError] = useState<string | null>(null);
@@ -84,9 +87,9 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
               </span>
             </div>
             <ul className="seats">
-              {lobby.players.map((p, i) => (
-                <li key={p.id}>
-                  <Avatar name={p.name} seat={i} />
+              {lobby.players.map((p) => (
+                <li key={p.id} className={p.id === me ? 'is-me' : ''}>
+                  <Avatar name={p.name} color={colorHex(p.color)} />
                   <span className="seats__name">{p.name}</span>
                   {p.id === lobby.hostId && <span className="pill">{tr.t('hostTag')}</span>}
                   {p.id === me && <span className="pill pill--accent">{tr.t('youTag')}</span>}
@@ -94,6 +97,13 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
                     <span className={`dot ${p.online ? 'dot--on' : ''}`} />
                     {p.online ? tr.t('online') : tr.t('offline')}
                   </span>
+                  {p.id === me && (
+                    <ColorPicker
+                      value={p.color}
+                      taken={lobby.players.filter((o) => o.id !== me).map((o) => o.color)}
+                      onPick={onSetColor}
+                    />
+                  )}
                 </li>
               ))}
               {Array.from({ length: openSeats }, (_, i) => (
@@ -107,6 +117,27 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
         </div>
 
         <section className="panel">
+          <div className="timer-setting">
+            <Icon name="clock" />
+            <label htmlFor="turn-timer">{tr.t('turnTimer')}</label>
+            {host ? (
+              <select
+                id="turn-timer"
+                value={lobby.turnTimer ?? ''}
+                onChange={(e) => host.setTurnTimer(e.target.value === '' ? null : Number(e.target.value))}
+              >
+                <option value="">{tr.t('timerOff')}</option>
+                {TURN_TIMER_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {tr.t('timerSeconds', { n: s })}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <b id="turn-timer">{lobby.turnTimer === null ? tr.t('timerOff') : tr.t('timerSeconds', { n: lobby.turnTimer })}</b>
+            )}
+            {lobby.turnTimer !== null && <span className="zone__hint">{tr.t('timerHint')}</span>}
+          </div>
           {host ? (
             <KingdomPicker
               selected={draft}

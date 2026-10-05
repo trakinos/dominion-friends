@@ -7,16 +7,17 @@ import { Icon } from './Icon';
 interface Props {
   view: PlayerView;
   online(playerIndex: number): boolean;
+  colorOf(playerIndex: number): string;
 }
 
-export function Opponents({ view, online }: Props) {
+export function Opponents({ view, online, colorOf }: Props) {
   const { tr } = useLang();
   return (
     <ul className="opponents">
       {view.players.map((p, i) =>
         i === view.you ? null : (
           <li key={p.id} className={i === view.turn.player ? 'is-current' : ''}>
-            <Avatar name={p.name} seat={i} online={online(i)} />
+            <Avatar name={p.name} color={colorOf(i)} online={online(i)} />
             <span>
               <span className="seat__name">{p.name}</span>
               <span className="seat__tag">{i === view.turn.player ? tr.t('onTurn') : online(i) ? tr.t('online') : tr.t('offline')}</span>

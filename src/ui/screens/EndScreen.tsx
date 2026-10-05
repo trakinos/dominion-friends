@@ -1,21 +1,23 @@
 import type { CardId, GameResult } from '../../engine/types';
+import type { LobbyState } from '../../net/protocol';
 import { useLang } from '../../i18n/LangProvider';
 import { primaryType } from '../format';
+import { playerColor } from '../playerColor';
 import { Avatar } from '../components/Avatar';
 import { Icon } from '../components/Icon';
 
 interface Props {
   result: GameResult;
+  lobby: LobbyState;
   isHost: boolean;
   onPlayAgain(): void;
   onBackToLobby(): void;
   onLeave(): void;
 }
 
-export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave }: Props) {
+export function EndScreen({ result, lobby, isHost, onPlayAgain, onBackToLobby, onLeave }: Props) {
   const { tr } = useLang();
   const ranked = [...result.scores].sort((a, b) => b.vp - a.vp || a.turns - b.turns);
-  const seat = (playerId: string) => result.scores.findIndex((s) => s.playerId === playerId);
   const winnerNames = result.scores.filter((s) => result.winners.includes(s.playerId)).map((s) => s.name);
   return (
     <main className="screen end">
@@ -42,7 +44,7 @@ export function EndScreen({ result, isHost, onPlayAgain, onBackToLobby, onLeave 
                   <td className="scores__rank">{rank + 1}</td>
                   <td>
                     <span className="scores__player">
-                      <Avatar name={s.name} seat={seat(s.playerId)} />
+                      <Avatar name={s.name} color={playerColor(lobby, s.playerId)} />
                       {s.name}
                       {won && (
                         <span className="pill pill--gold">

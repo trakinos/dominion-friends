@@ -14,6 +14,7 @@ import { PromptPanel } from '../components/PromptPanel';
 import { Supply } from '../components/Supply';
 import { TurnBar } from '../components/TurnBar';
 import { EMPTY_PILES_TO_END, buyablePiles, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
+import { playerColor } from '../playerColor';
 
 type Tab = 'hand' | 'supply' | 'log';
 const TABS: { id: Tab; label: 'tabHand' | 'tabSupply' | 'tabLog' }[] = [
@@ -46,6 +47,7 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
   const menu = useRef<HTMLDetailsElement>(null);
   const names = view.players.map((p) => p.name);
   const online = (i: number) => lobby.players.find((p) => p.id === view.players[i].id)?.online ?? false;
+  const colorOf = (i: number) => playerColor(lobby, view.players[i].id);
   const current = view.players[view.turn.player];
   const me = view.players[view.you];
   const mine = isMyTurn(view);
@@ -64,7 +66,7 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
           {tr.t('appName')}
           <span className="room">{code}</span>
         </div>
-        <Opponents view={view} online={online} />
+        <Opponents view={view} online={online} colorOf={colorOf} />
         {onEndGame && (
           <details className="menu" ref={menu}>
             <summary aria-label={tr.t('moreOptions')} title={tr.t('moreOptions')}>

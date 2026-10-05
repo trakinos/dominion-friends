@@ -121,6 +121,19 @@ const ui = {
   "backToLobby": "Back to lobby",
   "waitingHost": "Waiting for the host…",
   "language": "Language",
+  "yourColor": "Your color",
+  "colorBlue": "Blue",
+  "colorRed": "Red",
+  "colorTeal": "Teal",
+  "colorAmber": "Amber",
+  "colorGreen": "Green",
+  "colorPurple": "Purple",
+  "colorPink": "Pink",
+  "colorSlate": "Slate",
+  "turnTimer": "Turn timer",
+  "timerOff": "Off",
+  "timerSeconds": "{n} s",
+  "timerHint": "Attack responses get 30 s.",
 } as const;
 
 export type UiKey = keyof typeof ui;
