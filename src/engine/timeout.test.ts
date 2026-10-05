@@ -4,7 +4,7 @@ import { botMove } from '../sim/bigMoney';
 import { Game } from './game';
 import { createRng, nextInt, shuffle } from './rng';
 import { answerAtRandom, finishTurn } from './timeout';
-import { newState, setZones } from './testkit';
+import { newState, setZones, TEST_KINGDOM } from './testkit';
 
 describe('answerAtRandom', () => {
   it('returns false when nothing is pending', () => {
@@ -24,7 +24,43 @@ describe('answerAtRandom', () => {
   });
 });
 
+function playedMilitia(game: Game): boolean {
+  return game.state.log.some((e) => e.text === 'plays' && e.cards?.includes('militia'));
+}
+
 describe('finishTurn', () => {
+  it('declines Throne Room instead of playing an Action twice', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const state = newState({ kingdom: [...TEST_KINGDOM.slice(0, 9), 'throne_room'] });
+      setZones(state, 0, { hand: ['throne_room', 'militia', 'copper'] });
+      const oppHand = [...state.players[1].hand];
+      const game = new Game(state);
+      expect(game.apply('p0', { type: 'playAction', handIndex: 0 }).ok).toBe(true);
+      expect(game.state.pending).toMatchObject({ id: 'throneRoomChoose', player: 0 });
+      finishTurn(game, createRng(seed));
+      expect(playedMilitia(game), `seed ${seed}`).toBe(false);
+      expect(game.state.players[0].discard).toContain('militia');
+      expect(game.state.players[1].hand).toEqual(oppHand);
+      expect(game.state.turn.player).toBe(1);
+    }
+  });
+
+  it('declines Vassal instead of playing the discarded Action', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const state = newState({ kingdom: [...TEST_KINGDOM.slice(0, 9), 'vassal'] });
+      setZones(state, 0, { hand: ['vassal', 'copper'], deck: ['militia', 'estate', 'estate', 'estate', 'estate', 'estate'] });
+      const oppHand = [...state.players[1].hand];
+      const game = new Game(state);
+      expect(game.apply('p0', { type: 'playAction', handIndex: 0 }).ok).toBe(true);
+      expect(game.state.pending).toMatchObject({ id: 'vassalPlay', player: 0 });
+      finishTurn(game, createRng(seed));
+      expect(playedMilitia(game), `seed ${seed}`).toBe(false);
+      expect(game.state.players[0].discard).toContain('militia');
+      expect(game.state.players[1].hand).toEqual(oppHand);
+      expect(game.state.turn.player).toBe(1);
+    }
+  });
+
   it('ends a fresh turn without playing or buying', () => {
     const game = new Game(newState());
     const handBefore = [...game.state.players[0].hand];

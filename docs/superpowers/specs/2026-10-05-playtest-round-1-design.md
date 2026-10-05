@@ -48,7 +48,8 @@ Feedback from the first real playtest. Five changes are built now. Sounds and en
 
 **On expiry.**
 - **Response clock:** the host answers the pending prompt with a random valid answer for that player.
-- **Turn clock:** the host auto-finishes the turn. It repeatedly answers the current player's pending prompts with random valid answers and sends `endPhase` until the turn passes to the next player or the game ends. It never plays or buys cards.
+- **Turn clock:** the host auto-finishes the turn. It repeatedly answers the current player's pending prompts with random valid answers and sends `endPhase` until the turn passes to the next player or the game ends.
+- **Exception: choices that would play a card are declined.** Throne Room's "choose an Action to play twice" gets no card, and Vassal's "Play the discarded Action card?" gets "Leave it". Every other open choice gets a random answer. A timeout never plays or buys cards. (`timeoutAnswer` in `src/engine/timeout.ts`, prompt ids in `PLAYS_A_CARD`.)
 - Auto-moves go through the normal `Game.apply` path as that player's intents. The log adds an entry: "Time's up: {name}'s turn ended" or "Time's up: {name} answered at random", in both languages.
 
 **Random answers.** `randomAnswer(prompt, rng)` in `src/engine/` returns a legal `PromptAnswer` for every prompt kind:
