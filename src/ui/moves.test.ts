@@ -3,7 +3,7 @@ import { Game } from '../engine/game';
 import { newState, setZones } from '../engine/testkit';
 import type { Prompt } from '../engine/types';
 import { viewFor } from '../engine/view';
-import { buyablePiles, canPlayAllTreasures, canStillPlayAction, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
+import { buyablePiles, canPlayAllTreasures, canStillPlayAction, endGameStatus, guardStillApplies, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
 
 function stateWithHand(hand: string[]) {
   const state = newState();
@@ -41,6 +41,18 @@ describe('moves', () => {
     buying.turn.phase = 'buy';
     expect(canStillPlayAction(viewFor(buying, 'p0'))).toBe(false);
     expect(canStillPlayAction(viewFor(stateWithHand(['village']), 'p1'))).toBe(false);
+  });
+
+  it('keeps the click guard only on the view it was opened on', () => {
+    const state = stateWithHand(['village', 'copper']);
+    const opened = viewFor(state, 'p0');
+    expect(guardStillApplies(opened, opened)).toBe(true);
+    // Any newer view (a timeout, a prompt, the next turn) closes it, even if it looks the same.
+    expect(guardStillApplies(opened, viewFor(state, 'p0'))).toBe(false);
+    const buying = stateWithHand(['village', 'copper']);
+    buying.turn.phase = 'buy';
+    const later = viewFor(buying, 'p0');
+    expect(guardStillApplies(later, later)).toBe(false);
   });
 
   it('stops Actions with no Actions left and Treasures after buying', () => {

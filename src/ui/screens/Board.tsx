@@ -16,7 +16,7 @@ import { Supply } from '../components/Supply';
 import { TimerBar } from '../components/TimerBar';
 import { TurnActions } from '../components/TurnActions';
 import { TurnBoard } from '../components/TurnBoard';
-import { EMPTY_PILES_TO_END, buyablePiles, canStillPlayAction, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
+import { EMPTY_PILES_TO_END, buyablePiles, canStillPlayAction, endGameStatus, guardStillApplies, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
 import { playerColor } from '../playerColor';
 
 type Tab = 'hand' | 'supply' | 'log';
@@ -46,7 +46,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
   const [tab, setTab] = useState<Tab>('hand');
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [endInfo, setEndInfo] = useState(false);
-  const [guard, setGuard] = useState<{ intent: Intent; body: string } | null>(null);
+  const [guard, setGuard] = useState<{ intent: Intent; body: string; view: PlayerView } | null>(null);
   const ending = endGameStatus(view);
   const province = tr.card('province');
   const noAction = hasNoActionToPlay(view);
@@ -64,9 +64,12 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
 
   /** Moves that would end the Action phase early ask first while an Action could still be played. */
   function guarded(intent: Intent, body: string) {
-    if (canStillPlayAction(view)) setGuard({ intent, body });
+    if (canStillPlayAction(view)) setGuard({ intent, body, view });
     else onIntent(intent);
   }
+
+  // A new view (timeout, prompt, next turn) closes the guard: its intent was built for the old one.
+  useEffect(() => setGuard(null), [view]);
 
   useEffect(() => {
     if (!error) return;
@@ -263,7 +266,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
         />
       )}
 
-      {guard && (
+      {guard && guardStillApplies(guard.view, view) && (
         <ConfirmDialog
           tone="neutral"
           title={tr.t('guardTitle')}
