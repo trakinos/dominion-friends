@@ -74,10 +74,15 @@ The skip button reuses the existing `skip` i18n key instead of adding a new one.
 ### Test count (deviation, Task 1)
 The plan expected "4 + 3" engine tests. The final suites are `randomAnswer.test.ts` (2 tests; one covers all prompt kinds in a loop) and `timeout.test.ts` (4). This was a miscount in the plan, and no coverage is missing.
 
+### Decision (post-review): option C, a timeout never plays a card
+**Chose:** When the clock runs out, prompts whose answer would play a card are declined instead of answered at random: Throne Room (`throneRoomChoose`) picks no card and Vassal (`vassalPlay`) picks "Leave it". All other prompts stay random. `timeoutAnswer(prompt, rng)` in `src/engine/timeout.ts` handles this with a small `PLAYS_A_CARD` set; `randomAnswer` stays uniform.
+**Why:** A random "yes" could play an attack (Militia, Witch, Bandit, Bureaucrat), and its victims' prompts were then also answered at random inside `finishTurn`. Other players were hurt by someone else's timeout, which broke the promise that auto-moves never play or buy cards.
+**Alternatives considered:** A) keep answers fully random, so victims pay for someone else's timeout. B) pause for each victim's 30 s response clock: the fairest, but the most work and it makes timeouts slower.
+
 ## Assumptions
 - Network delay is small compared with the clock, so a guest's local deadline is off by at most a few hundred ms.
 - The host's tab keeps running timers. Browsers throttle background tabs, so a host in a background tab may fire expiries late, but never early.
-- A random answer is an acceptable penalty for running out of time on a prompt. Forced moves never play or buy for the player.
+- A random answer is an acceptable penalty for running out of time on a prompt. Forced moves never play or buy for the player: choices that would play a card (Throne Room, Vassal) are declined.
 - 8 colors are plenty for a maximum of 4 players. Colors fall back to blue if a seat somehow has none.
 - The 30 s response clock (`RESPONSE_MS`) is fixed, not a host setting.
 
