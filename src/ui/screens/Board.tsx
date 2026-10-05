@@ -16,7 +16,7 @@ import { Supply } from '../components/Supply';
 import { TimerBar } from '../components/TimerBar';
 import { TurnActions } from '../components/TurnActions';
 import { TurnBoard } from '../components/TurnBoard';
-import { EMPTY_PILES_TO_END, buyablePiles, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
+import { EMPTY_PILES_TO_END, buyablePiles, canStillPlayAction, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
 import { playerColor } from '../playerColor';
 
 type Tab = 'hand' | 'supply' | 'log';
@@ -46,6 +46,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
   const [tab, setTab] = useState<Tab>('hand');
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [endInfo, setEndInfo] = useState(false);
+  const [guard, setGuard] = useState<{ intent: Intent; body: string } | null>(null);
   const ending = endGameStatus(view);
   const province = tr.card('province');
   const noAction = hasNoActionToPlay(view);
@@ -60,6 +61,12 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
   const me = view.players[view.you];
   const mine = isMyTurn(view);
   const idle = mine && view.prompt === null && view.waitingOn === null;
+
+  /** Moves that would end the Action phase early ask first while an Action could still be played. */
+  function guarded(intent: Intent, body: string) {
+    if (canStillPlayAction(view)) setGuard({ intent, body });
+    else onIntent(intent);
+  }
 
   useEffect(() => {
     if (!error) return;
@@ -139,7 +146,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
           view={view}
           buyable={buyablePiles(view)}
           buying={idle && view.turn.phase === 'buy'}
-          onBuy={(card) => onIntent({ type: 'buy', card })}
+          onBuy={(card) => guarded({ type: 'buy', card }, tr.t('guardBuy', { card: tr.card(card) }))}
         />
       </section>
 
@@ -176,7 +183,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
         <section className="board__turn">
           <TurnActions
             view={view}
-            onPlayAll={() => onIntent({ type: 'playAllTreasures' })}
+            onPlayAll={() => guarded({ type: 'playAllTreasures' }, tr.t('guardAllTreasures'))}
             onEndPhase={() => onIntent({ type: 'endPhase' })}
           />
           {view.waitingOn && (
@@ -220,7 +227,9 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
             active={idle}
             onPlay={(i) => {
               const intent = intentForHandCard(view, i);
-              if (intent) onIntent(intent);
+              if (!intent) return;
+              if (intent.type === 'playTreasure') guarded(intent, tr.t('guardTreasure'));
+              else onIntent(intent);
             }}
           />
           <div className="stack">
@@ -251,6 +260,21 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
           prompt={view.prompt}
           clock={clock}
           onAnswer={(answer) => onIntent({ type: 'answerPrompt', answer })}
+        />
+      )}
+
+      {guard && (
+        <ConfirmDialog
+          tone="neutral"
+          title={tr.t('guardTitle')}
+          body={guard.body}
+          cancel={tr.t('guardCancel')}
+          confirm={tr.t('endActions')}
+          onCancel={() => setGuard(null)}
+          onConfirm={() => {
+            setGuard(null);
+            onIntent(guard.intent);
+          }}
         />
       )}
 

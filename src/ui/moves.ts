@@ -32,6 +32,11 @@ export function hasNoActionToPlay(view: PlayerView): boolean {
   return view.turn.actions < 1 || !view.hand.some((id) => isType(id, 'action'));
 }
 
+/** Your Action phase and you could still play an Action: Treasures and buys would end it early. */
+export function canStillPlayAction(view: PlayerView): boolean {
+  return canAct(view) && view.turn.phase === 'action' && view.turn.actions > 0 && view.hand.some((id) => isType(id, 'action'));
+}
+
 /** The game ends after a turn where the Province pile, or any 3 piles, run out. */
 export const EMPTY_PILES_TO_END = 3;
 

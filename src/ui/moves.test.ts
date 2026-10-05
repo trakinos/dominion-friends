@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Game } from '../engine/game';
 import { newState, setZones } from '../engine/testkit';
 import { viewFor } from '../engine/view';
-import { buyablePiles, canPlayAllTreasures, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
+import { buyablePiles, canPlayAllTreasures, canStillPlayAction, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
 
 function stateWithHand(hand: string[]) {
   const state = newState();
@@ -28,6 +28,18 @@ describe('moves', () => {
     setZones(state, 1, { hand: ['village', 'copper'] });
     expect(playableHand(viewFor(state, 'p1'))).toEqual([false, false]);
     expect(canPlayAllTreasures(viewFor(state, 'p1'))).toBe(false);
+  });
+
+  it('knows when an Action could still be played', () => {
+    expect(canStillPlayAction(viewFor(stateWithHand(['village', 'copper']), 'p0'))).toBe(true);
+    expect(canStillPlayAction(viewFor(stateWithHand(['copper', 'estate']), 'p0'))).toBe(false);
+    const noActions = stateWithHand(['village', 'copper']);
+    noActions.turn.actions = 0;
+    expect(canStillPlayAction(viewFor(noActions, 'p0'))).toBe(false);
+    const buying = stateWithHand(['village', 'copper']);
+    buying.turn.phase = 'buy';
+    expect(canStillPlayAction(viewFor(buying, 'p0'))).toBe(false);
+    expect(canStillPlayAction(viewFor(stateWithHand(['village']), 'p1'))).toBe(false);
   });
 
   it('stops Actions with no Actions left and Treasures after buying', () => {
