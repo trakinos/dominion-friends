@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Game } from '../engine/game';
 import { newState, setZones } from '../engine/testkit';
 import { viewFor } from '../engine/view';
-import { buyablePiles, canPlayAllTreasures, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
+import { buyablePiles, canPlayAllTreasures, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
 
 function stateWithHand(hand: string[]) {
   const state = newState();
@@ -37,6 +37,28 @@ describe('moves', () => {
     state.turn.boughtThisTurn = true;
     expect(playableHand(viewFor(state, 'p0'))).toEqual([false, false]);
     expect(canPlayAllTreasures(viewFor(state, 'p0'))).toBe(false);
+  });
+
+  it('flags the Action phase when no Action can be played', () => {
+    expect(hasNoActionToPlay(viewFor(stateWithHand(['copper', 'estate']), 'p0'))).toBe(true);
+    expect(hasNoActionToPlay(viewFor(stateWithHand(['village', 'copper']), 'p0'))).toBe(false);
+    const noActions = stateWithHand(['village']);
+    noActions.turn.actions = 0;
+    expect(hasNoActionToPlay(viewFor(noActions, 'p0'))).toBe(true);
+    const buying = stateWithHand(['copper']);
+    buying.turn.phase = 'buy';
+    expect(hasNoActionToPlay(viewFor(buying, 'p0'))).toBe(false);
+    expect(hasNoActionToPlay(viewFor(stateWithHand(['copper']), 'p1'))).toBe(false);
+  });
+
+  it('counts down to the end of the game', () => {
+    const state = newState();
+    const full = endGameStatus(viewFor(state, 'p0'));
+    expect(full.emptyPiles).toBe(0);
+    expect(full.provincesLeft).toBe(state.supply.province);
+    state.supply.village = 0;
+    state.supply.curse = 0;
+    expect(endGameStatus(viewFor(state, 'p0')).emptyPiles).toBe(2);
   });
 
   it('marks nothing playable while a prompt is open', () => {

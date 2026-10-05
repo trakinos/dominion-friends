@@ -12,7 +12,7 @@ import { Opponents } from '../components/Opponents';
 import { PromptPanel } from '../components/PromptPanel';
 import { Supply } from '../components/Supply';
 import { TurnBar } from '../components/TurnBar';
-import { buyablePiles, intentForHandCard, isMyTurn, playableHand } from '../moves';
+import { EMPTY_PILES_TO_END, buyablePiles, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
 
 type Tab = 'hand' | 'supply' | 'log';
 const TABS: { id: Tab; label: 'tabHand' | 'tabSupply' | 'tabLog' }[] = [
@@ -38,6 +38,10 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
   const { tr } = useLang();
   const [tab, setTab] = useState<Tab>('hand');
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [endInfo, setEndInfo] = useState(false);
+  const ending = endGameStatus(view);
+  const province = tr.card('province');
+  const noAction = hasNoActionToPlay(view);
   const menu = useRef<HTMLDetailsElement>(null);
   const names = view.players.map((p) => p.name);
   const online = (i: number) => lobby.players.find((p) => p.id === view.players[i].id)?.online ?? false;
@@ -94,7 +98,31 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
         <div className="zone__head">
           <h2>{tr.t('tabSupply')}</h2>
           <span className="zone__hint">{tr.t('supplyHint')}</span>
+          <span className="endgame">
+            <Icon name="trophy" />
+            <b>{tr.t('endGameTitleShort')}</b>
+            {tr.t('endGameStatus', { province, left: ending.provincesLeft, empty: ending.emptyPiles, max: EMPTY_PILES_TO_END })}
+            <button
+              type="button"
+              className={`info-btn ${endInfo ? 'is-open' : ''}`}
+              aria-label={tr.t('endGameTitleShort')}
+              title={tr.t('endGameTitleShort')}
+              aria-expanded={endInfo}
+              onClick={() => setEndInfo(!endInfo)}
+            >
+              <Icon name="info" />
+            </button>
+          </span>
         </div>
+        {endInfo && (
+          <div className="banner banner--info" role="note">
+            <Icon name="info" />
+            <span>{tr.t('endGameInfo', { province, max: EMPTY_PILES_TO_END })}</span>
+            <button type="button" className="banner__close" onClick={() => setEndInfo(false)} aria-label={tr.t('dismiss')}>
+              <Icon name="x" />
+            </button>
+          </div>
+        )}
         <Supply
           view={view}
           buyable={buyablePiles(view)}
@@ -153,7 +181,16 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
           )}
         </section>
 
-        <section className="board__hand" aria-label={tr.t('hand')}>
+        <section className={`board__hand ${noAction ? 'has-cta' : ''}`} aria-label={tr.t('hand')}>
+          {noAction && (
+            <div className="hand-cta">
+              <span>{tr.t('nothingToPlay')}</span>
+              <button type="button" className="primary" onClick={() => onIntent({ type: 'endPhase' })}>
+                {tr.t('endActions')}
+                <Icon name="play" />
+              </button>
+            </div>
+          )}
           <div className="stack">
             <div className={`cardback ${me.deckCount === 0 ? 'is-empty' : ''}`} />
             <span>

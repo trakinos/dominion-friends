@@ -26,6 +26,22 @@ export function playableHand(view: PlayerView): boolean[] {
   });
 }
 
+/** Your Action phase, but nothing in hand can be played as an Action. */
+export function hasNoActionToPlay(view: PlayerView): boolean {
+  if (!canAct(view) || view.turn.phase !== 'action') return false;
+  return view.turn.actions < 1 || !view.hand.some((id) => isType(id, 'action'));
+}
+
+/** The game ends after a turn where the Province pile, or any 3 piles, run out. */
+export const EMPTY_PILES_TO_END = 3;
+
+export function endGameStatus(view: PlayerView): { provincesLeft: number; emptyPiles: number } {
+  return {
+    provincesLeft: view.supply.province ?? 0,
+    emptyPiles: Object.values(view.supply).filter((n) => n === 0).length,
+  };
+}
+
 export function canPlayAllTreasures(view: PlayerView): boolean {
   return canAct(view) && !view.turn.boughtThisTurn && view.hand.some((id) => isType(id, 'treasure'));
 }

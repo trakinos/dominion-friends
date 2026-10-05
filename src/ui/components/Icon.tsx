@@ -40,6 +40,12 @@ const PATHS = {
       <circle cx="19" cy="12" r="1.6" fill="currentColor" />
     </>
   ),
+  info: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v6M12 7.5v.5" />
+    </>
+  ),
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   clock: (
     <>

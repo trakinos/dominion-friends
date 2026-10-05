@@ -567,6 +567,32 @@ input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px 
   border-radius: var(--r-md); background: var(--surface-2); font-weight: 700; font-size: 14px;
 }
 .banner .ico { color: var(--muted); }
+.banner--info { align-items: flex-start; font-weight: 600; line-height: 1.4; margin-bottom: 10px; }
+.banner--info > .ico { flex: none; margin-top: 2px; color: var(--accent); }
+.banner--info > span { flex: 1; }
+.banner__close { flex: none; min-height: 0; padding: 2px; border: 0; background: transparent; }
+.info-btn {
+  min-height: 0; padding: 0; border: 0; background: transparent; color: var(--muted);
+  display: inline-flex; border-radius: 99px; cursor: pointer;
+}
+.info-btn:hover, .info-btn.is-open { color: var(--accent); }
+.info-btn .ico { width: 15px; height: 15px; }
+.endgame {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 99px; background: var(--surface-2);
+  font-size: 12px; font-weight: 700; color: var(--muted);
+}
+.endgame b { color: var(--text); }
+.endgame > .ico { width: 14px; height: 14px; }
+.hand-cta {
+  position: absolute; left: 50%; top: 0; translate: -50% -50%; z-index: 5;
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; white-space: nowrap;
+  border-radius: 99px; background: var(--surface); border: 2px solid var(--border); box-shadow: var(--e2);
+  font-weight: 800; font-size: 13px; color: var(--muted);
+  animation: pop var(--dur-slow) var(--ease-spring);
+}
+.board__hand.has-cta { padding-top: 22px; }
+.hand-cta button { padding: 6px 14px; min-height: 0; }
 .toast {
   position: fixed; left: 50%; bottom: 300px; transform: translateX(-50%); z-index: 40;
   display: flex; align-items: center; gap: 12px; max-width: min(460px, calc(100vw - 32px));
@@ -577,7 +603,7 @@ input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px 
 .toast__ic { width: 30px; height: 30px; border-radius: 50%; background: var(--danger); color: var(--danger-text); display: flex; align-items: center; justify-content: center; flex: none; }
 .toast__ic .ico { width: 16px; height: 16px; }
 .toast button { background: transparent; border: 0; color: var(--bg); min-height: 36px; width: 36px; padding: 0; }
-.board__hand { display: flex; align-items: flex-end; gap: 22px; margin-top: 8px; }
+.board__hand { position: relative; display: flex; align-items: flex-end; gap: 22px; margin-top: 8px; }
 .hand {
   flex: 1; min-width: 0;
   display: flex; gap: 12px; align-items: flex-end; justify-content: safe center;
@@ -695,6 +721,7 @@ input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px 
   }
   .turnbar { gap: 10px; }
   .turn-pill { font-size: 14px; padding: 4px 10px; }
+  .phases li { padding: 5px 9px; white-space: nowrap; }
   .ctr { font-size: 0; gap: 4px; }
   .ctr b { font-size: 17px; }
   .turnbar__btns { margin-left: 0; width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
