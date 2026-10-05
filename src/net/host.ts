@@ -53,6 +53,8 @@ export class HostSession {
   private activeGame: Game | null = null;
   private turnTimer: number | null = null;
   private clock: TurnClock | null = null;
+  /** Colors of guests who left the lobby, by token: a refresh gets the same color back if it is still free. */
+  private departedColors = new Map<string, PlayerColorId>();
   private readonly random: () => number;
   private readonly makeToken: () => string;
   private readonly scheduler: Scheduler;
@@ -197,7 +199,7 @@ export class HostSession {
     if (this.activeGame) return this.reject(conn, 'Game in progress');
     if (this.seats.length >= MAX_PLAYERS) return this.reject(conn, 'Room full');
 
-    const seat: Seat = { id: `p${this.nextSeat++}`, name, token: this.makeToken(), conn, color: this.freeColor() };
+    const seat: Seat = { id: `p${this.nextSeat++}`, name, token: this.makeToken(), conn, color: this.freeColor(token) };
     this.seats.push(seat);
     if (isHost && this.hostSeatId === null) this.hostSeatId = seat.id;
     this.welcome(seat);
@@ -213,7 +215,10 @@ export class HostSession {
 
   private disconnected(seat: Seat): void {
     seat.conn = null;
-    if (!this.activeGame) this.seats = this.seats.filter((s) => s !== seat);
+    if (!this.activeGame) {
+      this.seats = this.seats.filter((s) => s !== seat);
+      this.departedColors.set(seat.token, seat.color);
+    }
     this.broadcastLobby();
   }
 
@@ -259,8 +264,12 @@ export class HostSession {
     this.broadcastLobby();
   }
 
-  private freeColor(): PlayerColorId {
+  /** The color this token had before leaving the lobby if it is still free, else the first free one. */
+  private freeColor(token: string | null): PlayerColorId {
     const taken = new Set(this.seats.map((s) => s.color));
+    const remembered = token ? this.departedColors.get(token) : undefined;
+    if (token) this.departedColors.delete(token);
+    if (remembered && !taken.has(remembered)) return remembered;
     return (PLAYER_COLORS.find((c) => !taken.has(c.id)) ?? PLAYER_COLORS[0]).id;
   }
 
