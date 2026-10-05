@@ -132,6 +132,8 @@ const pt: Dictionary = {
     "timerOff": "Desligado",
     "timerSeconds": "{n} s",
     "timerHint": "Respostas a ataques têm 30 s.",
+    "turnStatus": "Situação do turno",
+    "timeLeft": "{n} segundos restantes",
   },
   prompts: {
     "discardDownTo": "Descarte {n} carta(s) até ficar com 3",

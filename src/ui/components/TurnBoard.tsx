@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { PlayerView } from '../../engine/view';
+import type { LocalClock } from '../../net/guest';
 import { useLang } from '../../i18n/LangProvider';
-import { canPlayAllTreasures, isMyTurn } from '../moves';
+import { isMyTurn } from '../moves';
 import { Icon } from './Icon';
+import { TimerBar } from './TimerBar';
 
 /** Action → Buy → Cleanup. Cleanup is instant in the engine, so it only ever shows as the step ahead. */
 const STEPS = ['action', 'buy', 'cleanup'] as const;
@@ -13,19 +15,18 @@ type Step = (typeof STEPS)[number];
 interface Props {
   view: PlayerView;
   names: string[];
-  onPlayAll(): void;
-  onEndPhase(): void;
+  clock: LocalClock | null;
 }
 
-export function TurnBar({ view, names, onPlayAll, onEndPhase }: Props) {
+/** Whose turn it is, which phase, what they have left, and how long. Display only. */
+export function TurnBoard({ view, names, clock }: Props) {
   const { tr } = useLang();
   const mine = isMyTurn(view);
-  const idle = mine && view.prompt === null && view.waitingOn === null;
   const t = view.turn;
   const [info, setInfo] = useState<Step | null>(null);
   return (
     <>
-      <div className="turnbar">
+      <div className="turnboard">
         {/* keyed on the player so the pill pops in again at every turn change */}
         <strong key={t.player} className={`turn-pill ${mine ? '' : 'is-other'}`} aria-live="polite">
           {mine ? tr.t('yourTurn') : tr.t('turnOf', { name: names[t.player] })}
@@ -68,17 +69,7 @@ export function TurnBar({ view, names, onPlayAll, onEndPhase }: Props) {
             <b>{'$' + t.coins}</b>
           </span>
         </div>
-        {idle && (
-          <div className="turnbar__btns">
-            <button type="button" disabled={!canPlayAllTreasures(view)} onClick={onPlayAll}>
-              <Icon name="coin" />
-              {tr.t('playAllTreasures')}
-            </button>
-            <button type="button" className="primary" onClick={onEndPhase}>
-              {t.phase === 'action' ? tr.t('endActions') : tr.t('endTurn')}
-            </button>
-          </div>
-        )}
+        {clock?.kind === 'turn' && <TimerBar clock={clock} />}
       </div>
       {info && (
         <div className="banner banner--info" role="note">

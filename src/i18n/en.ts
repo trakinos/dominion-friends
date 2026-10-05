@@ -134,6 +134,8 @@ const ui = {
   "timerOff": "Off",
   "timerSeconds": "{n} s",
   "timerHint": "Attack responses get 30 s.",
+  "turnStatus": "Turn status",
+  "timeLeft": "{n} seconds left",
 } as const;
 
 export type UiKey = keyof typeof ui;

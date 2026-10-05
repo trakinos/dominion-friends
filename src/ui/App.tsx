@@ -166,6 +166,7 @@ export function App() {
         lobby={state.lobby}
         code={active.code}
         error={state.error}
+        clock={state.clock}
         onIntent={(intent) => active.session.sendIntent(intent)}
         onDismissError={() => active.session.dismissError()}
         onEndGame={active.host ? () => active.host?.backToLobby() : undefined}
