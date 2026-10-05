@@ -150,4 +150,16 @@ describe('GuestSession', () => {
     waiting.sendIntent({ type: 'endPhase' });
     expect(waiting.current.error).toBeNull();
   });
+
+  it('sends setColor to the host', async () => {
+    const [hostEnd, guestEnd] = createMemoryPair();
+    const sent: unknown[] = [];
+    hostEnd.onMessage((m) => sent.push(m));
+    const guest = new GuestSession(guestEnd, 'Ana', memoryTokenStore());
+    hostEnd.send({ type: 'welcome', playerId: 'p0', token: 't' });
+    await flush();
+    guest.setColor('teal');
+    await flush();
+    expect(sent).toContainEqual({ type: 'setColor', color: 'teal' });
+  });
 });

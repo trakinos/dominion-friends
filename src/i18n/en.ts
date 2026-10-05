@@ -215,6 +215,7 @@ const en: Dictionary = {
     "Order must include every card once": "Order must include every card once",
     "No game in progress": "No game in progress",
     "Game in progress": "Game in progress",
+    "That color is taken": "That color is taken",
     "Room full": "Room full",
     "Something went wrong": "Something went wrong",
     "Need at least 2 players": "Need at least 2 players",

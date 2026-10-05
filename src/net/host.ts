@@ -3,6 +3,7 @@ import { Game } from '../engine/game';
 import { createRng, shuffle } from '../engine/rng';
 import type { ApplyResult, CardId, Intent } from '../engine/types';
 import { viewFor } from '../engine/view';
+import { PLAYER_COLORS, type PlayerColorId } from '../theme/playerColors';
 import { createMemoryPair } from './memory';
 import { parseGuestMessage, type HostMessage, type LobbyState } from './protocol';
 import type { Connection } from './transport';
@@ -22,6 +23,7 @@ interface Seat {
   name: string;
   token: string;
   conn: Connection | null;
+  color: PlayerColorId;
 }
 
 const ok = (): ApplyResult => ({ ok: true });
@@ -60,7 +62,7 @@ export class HostSession {
   get lobby(): LobbyState {
     return {
       hostId: this.hostSeatId ?? '',
-      players: this.seats.map((s) => ({ id: s.id, name: s.name, online: s.conn !== null })),
+      players: this.seats.map((s) => ({ id: s.id, name: s.name, online: s.conn !== null, color: s.color })),
       kingdom: [...this.kingdom],
       inGame: this.activeGame !== null,
     };
@@ -80,6 +82,10 @@ export class HostSession {
       if (!msg) return;
       if (msg.type === 'hello') {
         if (!seat) seat = this.hello(conn, msg.name, msg.token, isHost);
+        return;
+      }
+      if (msg.type === 'setColor') {
+        if (seat && seat.conn === conn) this.setColor(seat, conn, msg.color);
         return;
       }
       if (seat && seat.conn === conn) this.handleIntent(seat, conn, msg.intent);
@@ -151,7 +157,7 @@ export class HostSession {
     if (this.activeGame) return this.reject(conn, 'Game in progress');
     if (this.seats.length >= MAX_PLAYERS) return this.reject(conn, 'Room full');
 
-    const seat: Seat = { id: `p${this.nextSeat++}`, name, token: this.makeToken(), conn };
+    const seat: Seat = { id: `p${this.nextSeat++}`, name, token: this.makeToken(), conn, color: this.freeColor() };
     this.seats.push(seat);
     if (isHost && this.hostSeatId === null) this.hostSeatId = seat.id;
     this.welcome(seat);
@@ -188,6 +194,18 @@ export class HostSession {
       return;
     }
     this.broadcastViews();
+  }
+
+  private setColor(seat: Seat, conn: Connection, color: PlayerColorId): void {
+    if (this.activeGame) return void send(conn, { type: 'error', reason: 'Game in progress' });
+    if (this.seats.some((s) => s !== seat && s.color === color)) return void send(conn, { type: 'error', reason: 'That color is taken' });
+    seat.color = color;
+    this.broadcastLobby();
+  }
+
+  private freeColor(): PlayerColorId {
+    const taken = new Set(this.seats.map((s) => s.color));
+    return (PLAYER_COLORS.find((c) => !taken.has(c.id)) ?? PLAYER_COLORS[0]).id;
   }
 
   private welcome(seat: Seat): void {

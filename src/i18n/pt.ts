@@ -203,6 +203,7 @@ const pt: Dictionary = {
     "Order must include every card once": "A ordem precisa incluir cada carta uma vez",
     "No game in progress": "Nenhuma partida em andamento",
     "Game in progress": "Partida em andamento",
+    "That color is taken": "Essa cor já está em uso",
     "Room full": "Sala cheia",
     "Something went wrong": "Algo deu errado",
     "Need at least 2 players": "São necessários pelo menos 2 jogadores",

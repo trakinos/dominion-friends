@@ -23,6 +23,12 @@ describe('parseGuestMessage', () => {
     expect(parseGuestMessage({ type: 'intent' })).toBeNull();
   });
 
+  it('parses setColor with a palette color only', () => {
+    expect(parseGuestMessage({ type: 'setColor', color: 'pink' })).toEqual({ type: 'setColor', color: 'pink' });
+    expect(parseGuestMessage({ type: 'setColor', color: 'orange' })).toBeNull();
+    expect(parseGuestMessage({ type: 'setColor' })).toBeNull();
+  });
+
   it('rejects anything else', () => {
     for (const raw of [null, 'hello', 42, [], { type: 'ping' }, {}]) expect(parseGuestMessage(raw)).toBeNull();
   });

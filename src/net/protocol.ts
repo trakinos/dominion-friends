@@ -1,10 +1,12 @@
 import type { CardId, Intent } from '../engine/types';
 import type { PlayerView } from '../engine/view';
+import { isPlayerColor, type PlayerColorId } from '../theme/playerColors';
 
 export interface LobbyPlayer {
   id: string;
   name: string;
   online: boolean;
+  color: PlayerColorId;
 }
 
 export interface LobbyState {
@@ -16,7 +18,8 @@ export interface LobbyState {
 
 export type GuestMessage =
   | { type: 'hello'; name: string; token: string | null }
-  | { type: 'intent'; intent: Intent };
+  | { type: 'intent'; intent: Intent }
+  | { type: 'setColor'; color: PlayerColorId };
 
 export type HostMessage =
   | { type: 'welcome'; playerId: string; token: string }
@@ -46,6 +49,7 @@ export function parseGuestMessage(raw: unknown): GuestMessage | null {
   if (raw.type === 'intent' && isRecord(raw.intent) && typeof raw.intent.type === 'string') {
     return { type: 'intent', intent: raw.intent as unknown as Intent };
   }
+  if (raw.type === 'setColor' && isPlayerColor(raw.color)) return { type: 'setColor', color: raw.color };
   return null;
 }
 
