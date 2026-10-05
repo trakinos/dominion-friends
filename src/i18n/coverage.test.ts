@@ -6,8 +6,8 @@ import type { CardType, Intent } from '../engine/types';
 import { botMove } from '../sim/bigMoney';
 import { DICTIONARIES } from './index';
 
-/** Dictionary entries that no bot game reaches but real play can. */
-const LOG_ALLOWLIST: string[] = [];
+/** Dictionary entries that no bot game reaches but real play can. The host writes the timeout lines, not the engine. */
+const LOG_ALLOWLIST: string[] = ['timeout: turn ended', 'timeout: random answer'];
 // Sentry and Artisan prompts: Big Money never buys those cards.
 const PROMPT_ALLOWLIST: string[] = ['orderTopdeck', 'gainToHandUpTo', 'topdeckFromHand'];
 const OPTION_ALLOWLIST: string[] = [];

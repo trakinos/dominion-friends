@@ -1,21 +1,26 @@
 import { DEFAULT_KINGDOM, KINGDOM_IDS } from '../cards/registry';
 import { Game } from '../engine/game';
 import { createRng, shuffle } from '../engine/rng';
+import { answerAtRandom, finishTurn } from '../engine/timeout';
 import type { ApplyResult, CardId, Intent } from '../engine/types';
 import { viewFor } from '../engine/view';
 import { PLAYER_COLORS, type PlayerColorId } from '../theme/playerColors';
 import { createMemoryPair } from './memory';
 import { parseGuestMessage, type HostMessage, type LobbyState } from './protocol';
 import type { Connection } from './transport';
+import { realScheduler, TurnClock, type ClockKind, type Scheduler } from './turnClock';
 
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 4;
 /** Each view carries only the recent log: keeps messages small (binary channels chunk large ones, but a whole-game log is wasteful). */
 export const MAX_LOG_ENTRIES = 150;
+/** Turn timer choices in seconds; `null` (no timer) is the default. */
+export const TURN_TIMER_OPTIONS = [45, 60, 90, 120] as const;
 
 export interface HostOptions {
   random?: () => number;
   makeToken?: () => string;
+  scheduler?: Scheduler;
 }
 
 interface Seat {
@@ -46,12 +51,16 @@ export class HostSession {
   private nextSeat = 0;
   private kingdom: CardId[];
   private activeGame: Game | null = null;
+  private turnTimer: number | null = null;
+  private clock: TurnClock | null = null;
   private readonly random: () => number;
   private readonly makeToken: () => string;
+  private readonly scheduler: Scheduler;
 
   constructor(opts: HostOptions = {}) {
     this.random = opts.random ?? Math.random;
     this.makeToken = opts.makeToken ?? randomToken;
+    this.scheduler = opts.scheduler ?? realScheduler;
     this.kingdom = [...DEFAULT_KINGDOM];
   }
 
@@ -65,6 +74,7 @@ export class HostSession {
       players: this.seats.map((s) => ({ id: s.id, name: s.name, online: s.conn !== null, color: s.color })),
       kingdom: [...this.kingdom],
       inGame: this.activeGame !== null,
+      turnTimer: this.turnTimer,
     };
   }
 
@@ -117,6 +127,14 @@ export class HostSession {
     this.broadcastLobby();
   }
 
+  setTurnTimer(seconds: number | null): ApplyResult {
+    if (this.activeGame) return fail('Game in progress');
+    if (seconds !== null && !(TURN_TIMER_OPTIONS as readonly number[]).includes(seconds)) return fail('Invalid timer');
+    this.turnTimer = seconds;
+    this.broadcastLobby();
+    return ok();
+  }
+
   start(): ApplyResult {
     if (this.activeGame) return fail('Game already started');
     if (this.seats.length < MIN_PLAYERS) return fail('Need at least 2 players');
@@ -125,22 +143,37 @@ export class HostSession {
       kingdom: this.kingdom,
       seed: this.newSeed(),
     });
+    this.clock = this.turnTimer === null ? null : new TurnClock(this.turnTimer * 1000, this.scheduler, (kind) => this.expire(kind));
     this.broadcastLobby();
-    this.broadcastViews();
+    this.gameChanged();
     return ok();
   }
 
   playAgain(): ApplyResult {
     if (!this.activeGame?.state.result) return fail('The game is not over');
+    this.clock?.stop();
+    this.clock = null;
     this.activeGame = null;
     return this.start();
   }
 
   backToLobby(): void {
     if (!this.activeGame) return;
+    this.clock?.stop();
+    this.clock = null;
     this.activeGame = null;
     this.seats = this.seats.filter((s) => s.conn !== null);
     this.broadcastLobby();
+  }
+
+  /** Call after every change to the game: keeps the clock in step, then sends fresh views. */
+  gameChanged(): void {
+    const game = this.activeGame;
+    if (game && this.clock) {
+      const s = game.state;
+      this.clock.sync({ turn: s.turn, currentPlayer: s.turn.player, pending: s.pending, over: s.result !== null });
+    }
+    this.broadcastViews();
   }
 
   private hello(conn: Connection, name: string, token: string | null, isHost: boolean): Seat | null {
@@ -193,7 +226,23 @@ export class HostSession {
       send(conn, { type: 'error', reason: result.reason });
       return;
     }
-    this.broadcastViews();
+    this.gameChanged();
+  }
+
+  /** Time ran out: answer the pending prompt at random, or end the turn without playing or buying. */
+  private expire(kind: ClockKind): void {
+    const game = this.activeGame;
+    if (!game || game.state.result) return;
+    const s = game.state;
+    const rng = createRng(this.newSeed());
+    if (kind === 'response') {
+      if (s.pending) game.note(s.pending.player, 'timeout: random answer');
+      answerAtRandom(game, rng);
+    } else {
+      game.note(s.turn.player, 'timeout: turn ended');
+      finishTurn(game, rng);
+    }
+    this.gameChanged();
   }
 
   private setColor(seat: Seat, conn: Connection, color: PlayerColorId): void {
@@ -224,7 +273,7 @@ export class HostSession {
   private sendView(seat: Seat): void {
     if (seat.conn && this.activeGame) {
       const view = viewFor(this.activeGame.state, seat.id);
-      send(seat.conn, { type: 'view', view: { ...view, log: view.log.slice(-MAX_LOG_ENTRIES) } });
+      send(seat.conn, { type: 'view', view: { ...view, log: view.log.slice(-MAX_LOG_ENTRIES) }, clock: this.clock?.info() ?? null });
     }
   }
 

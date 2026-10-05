@@ -177,6 +177,8 @@ const en: Dictionary = {
     "reveals a hand with no Victory cards": "reveals a hand with no Victory cards",
     "Game over": "Game over",
     "takes the first turn": "takes the first turn",
+    "timeout: turn ended": "ran out of time — turn ended",
+    "timeout: random answer": "ran out of time — chose at random",
   },
   reasons: {
     "Choose between {min} and {max} cards": "Choose between {min} and {max} cards",
@@ -216,6 +218,7 @@ const en: Dictionary = {
     "No game in progress": "No game in progress",
     "Game in progress": "Game in progress",
     "That color is taken": "That color is taken",
+    "Invalid timer": "Invalid timer",
     "Room full": "Room full",
     "Something went wrong": "Something went wrong",
     "Need at least 2 players": "Need at least 2 players",

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { botMove } from '../sim/bigMoney';
 import { GuestSession, memoryTokenStore, type TokenStore } from './guest';
 import { HostSession } from './host';
@@ -161,5 +161,19 @@ describe('GuestSession', () => {
     guest.setColor('teal');
     await flush();
     expect(sent).toContainEqual({ type: 'setColor', color: 'teal' });
+  });
+
+  it('turns the clock into a local deadline', async () => {
+    const [hostEnd, guestEnd] = createMemoryPair();
+    const guest = new GuestSession(guestEnd, 'Ana', memoryTokenStore());
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
+    hostEnd.send({ type: 'welcome', playerId: 'p0', token: 't' });
+    hostEnd.send({ type: 'view', view: { you: 0 }, clock: { kind: 'turn', remainingMs: 30_000, totalMs: 45_000 } });
+    await flush();
+    expect(guest.current.clock).toEqual({ kind: 'turn', totalMs: 45_000, deadline: 1_030_000 });
+    hostEnd.send({ type: 'view', view: { you: 0 }, clock: null });
+    await flush();
+    expect(guest.current.clock).toBeNull();
+    now.mockRestore();
   });
 });

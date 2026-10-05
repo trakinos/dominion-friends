@@ -3,8 +3,16 @@ import type { PlayerView } from '../engine/view';
 import type { PlayerColorId } from '../theme/playerColors';
 import { parseHostMessage, type GuestMessage, type HostMessage, type LobbyState } from './protocol';
 import type { Connection } from './transport';
+import type { ClockKind } from './turnClock';
 
 export type GuestStatus = 'connecting' | 'joined' | 'rejected' | 'disconnected';
+
+/** A running clock as a local deadline (`Date.now()` time), so device clocks never need to agree. */
+export interface LocalClock {
+  kind: ClockKind;
+  totalMs: number;
+  deadline: number;
+}
 
 export interface GuestState {
   status: GuestStatus;
@@ -15,6 +23,8 @@ export interface GuestState {
   error: string | null;
   /** True from sending a move until the host answers, so a double click can't send a stale second move. */
   awaiting: boolean;
+  /** The running turn or response clock, if the room has a turn timer. */
+  clock: LocalClock | null;
 }
 
 export interface TokenStore {
@@ -24,7 +34,7 @@ export interface TokenStore {
 
 /** One player's side of the connection, the host's own UI included. */
 export class GuestSession {
-  private state: GuestState = { status: 'connecting', playerId: null, lobby: null, view: null, error: null, awaiting: false };
+  private state: GuestState = { status: 'connecting', playerId: null, lobby: null, view: null, error: null, awaiting: false, clock: null };
   private readonly listeners = new Set<(state: GuestState) => void>();
 
   constructor(
@@ -85,11 +95,15 @@ export class GuestSession {
         this.update({
           lobby: msg.lobby,
           view: msg.lobby.inGame ? this.state.view : null,
-          ...(msg.lobby.inGame ? {} : { awaiting: false }),
+          ...(msg.lobby.inGame ? {} : { awaiting: false, clock: null }),
         });
         break;
       case 'view':
-        this.update({ view: msg.view, awaiting: false });
+        this.update({
+          view: msg.view,
+          awaiting: false,
+          clock: msg.clock ? { kind: msg.clock.kind, totalMs: msg.clock.totalMs, deadline: Date.now() + msg.clock.remainingMs } : null,
+        });
         break;
       case 'error':
         if (this.state.status === 'connecting') {

@@ -42,6 +42,15 @@ describe('parseHostMessage', () => {
     expect(parseHostMessage({ type: 'error', reason: 'Room full' })).toEqual({ type: 'error', reason: 'Room full' });
   });
 
+  it('parses a view with or without a clock', () => {
+    const view = { you: 0 };
+    expect(parseHostMessage({ type: 'view', view, clock: { kind: 'turn', remainingMs: 5, totalMs: 10 } })).toEqual({
+      type: 'view', view, clock: { kind: 'turn', remainingMs: 5, totalMs: 10 },
+    });
+    expect(parseHostMessage({ type: 'view', view })).toEqual({ type: 'view', view, clock: null });
+    expect(parseHostMessage({ type: 'view', view, clock: { kind: 'nope', remainingMs: 5, totalMs: 10 } })).toEqual({ type: 'view', view, clock: null });
+  });
+
   it('rejects malformed messages', () => {
     for (const raw of [null, [], { type: 'welcome', playerId: 'p1' }, { type: 'lobby' }, { type: 'error' }, { type: 'nope' }]) {
       expect(parseHostMessage(raw)).toBeNull();

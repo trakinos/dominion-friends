@@ -165,6 +165,8 @@ const pt: Dictionary = {
     "reveals a hand with no Victory cards": "revela uma mão sem cartas de Vitória",
     "Game over": "Fim de jogo",
     "takes the first turn": "começa jogando",
+    "timeout: turn ended": "ficou sem tempo — turno encerrado",
+    "timeout: random answer": "ficou sem tempo — escolha aleatória",
   },
   reasons: {
     "Choose between {min} and {max} cards": "Escolha de {min} a {max} cartas",
@@ -204,6 +206,7 @@ const pt: Dictionary = {
     "No game in progress": "Nenhuma partida em andamento",
     "Game in progress": "Partida em andamento",
     "That color is taken": "Essa cor já está em uso",
+    "Invalid timer": "Tempo inválido",
     "Room full": "Sala cheia",
     "Something went wrong": "Algo deu errado",
     "Need at least 2 players": "São necessários pelo menos 2 jogadores",
