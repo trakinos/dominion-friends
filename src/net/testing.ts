@@ -4,6 +4,7 @@ import type { HostOptions, HostSession } from './host';
 import { createMemoryPair, flush } from './memory';
 import type { HostMessage } from './protocol';
 import type { Connection } from './transport';
+import type { Scheduler } from './turnClock';
 
 export function seededHostOptions(seed = 1): HostOptions {
   const rng = createRng(seed);
@@ -53,4 +54,33 @@ export async function join(
   client.send({ type: 'hello', name, token: opts.token ?? null });
   await flush();
   return client;
+}
+
+/** A manual clock for timer tests: time only moves when `advance` is called. */
+export function fakeScheduler(): Scheduler & { advance(ms: number): void } {
+  let now = 0;
+  let nextId = 0;
+  const tasks = new Map<number, { at: number; fn: () => void }>();
+  return {
+    now: () => now,
+    set(fn, ms) {
+      const id = ++nextId;
+      tasks.set(id, { at: now + ms, fn });
+      return id;
+    },
+    clear(handle) {
+      tasks.delete(handle as number);
+    },
+    advance(ms) {
+      const end = now + ms;
+      for (;;) {
+        const due = [...tasks.entries()].filter(([, t]) => t.at <= end).sort((a, b) => a[1].at - b[1].at)[0];
+        if (!due) break;
+        tasks.delete(due[0]);
+        now = due[1].at;
+        due[1].fn();
+      }
+      now = end;
+    },
+  };
 }
