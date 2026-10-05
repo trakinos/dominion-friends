@@ -9,6 +9,8 @@ export function TimerBar({ clock }: { clock: LocalClock }) {
   const { tr } = useLang();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
+    // A fresh clock must never render against a `now` left over from before it arrived.
+    setNow(Date.now());
     let frame = requestAnimationFrame(function tick() {
       setNow(Date.now());
       frame = requestAnimationFrame(tick);

@@ -16,3 +16,24 @@ describe('clock helpers', () => {
     expect(fractionLeft(clock, 200_000)).toBe(0);
   });
 });
+
+describe('clock helpers with a stale `now`', () => {
+  // A new clock can arrive while the tab isn't painting: the last rendered `now`
+  // is then older than the moment the deadline was computed from.
+  const stale = 100_000 - 45_000 - 3_000;
+
+  it('never shows more seconds than the total', () => {
+    expect(secondsLeft(clock, stale)).toBeLessThanOrEqual(Math.ceil(clock.totalMs / 1000));
+    expect(secondsLeft(clock, stale)).toBe(45);
+  });
+
+  it('never shows more than a full bar', () => {
+    expect(fractionLeft(clock, stale)).toBe(1);
+  });
+
+  it('caps a 30 s response clock at 30', () => {
+    const response = { kind: 'response' as const, totalMs: 30_000, deadline: 50_000 };
+    expect(secondsLeft(response, 0)).toBe(30);
+    expect(fractionLeft(response, 0)).toBe(1);
+  });
+});

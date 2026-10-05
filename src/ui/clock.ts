@@ -4,7 +4,8 @@ import type { LocalClock } from '../net/guest';
 export const LOW_TIME_S = 10;
 
 export function secondsLeft(clock: LocalClock, now: number): number {
-  return Math.max(0, Math.ceil((clock.deadline - now) / 1000));
+  const total = Math.ceil(clock.totalMs / 1000);
+  return Math.min(total, Math.max(0, Math.ceil((clock.deadline - now) / 1000)));
 }
 
 export function fractionLeft(clock: LocalClock, now: number): number {
