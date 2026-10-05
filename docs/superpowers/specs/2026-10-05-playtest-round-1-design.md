@@ -27,7 +27,7 @@ Feedback from the first real playtest. Five changes are built now. Sounds and en
 - The whole area is tinted with the **active player's** color (a soft background mix) and has a solid border in that color.
 
 **Hand dock.**
-- It is **always** tinted with **your own** color (same treatment: soft background, solid border), on every turn.
+- On **your turn** it is tinted with **your own** color (same treatment: soft background, solid border). On other turns it stays neutral. (Changed after playtesting the always-tinted version.)
 - It no longer shows phases or counters. On your turn it shows only your buttons (Play all Treasures, End Actions / End turn) and the "No Actions to play" shortcut. On other turns it shows no turn controls.
 - The "waiting for X to choose…" banners stay in the dock.
 

@@ -573,15 +573,19 @@ button.link:hover { color: var(--text); }
 .menu__list button { border: 0; background: transparent; justify-content: flex-start; min-height: 40px; }
 .menu__list button:hover { background: var(--surface-2); }
 
-/* dock: your turn buttons + hand, pinned to the bottom of the screen, in your color */
+/* dock: your turn buttons + hand, pinned to the bottom of the screen; in your color on your turn */
 .board__dock {
   grid-area: dock;
   position: sticky; bottom: 0; z-index: 10;
   margin: 0 -24px;
   padding: 12px 24px 16px;
-  background: color-mix(in srgb, var(--player, var(--accent)) 10%, var(--surface));
-  border-top: 3px solid var(--player, var(--border)); box-shadow: var(--e3);
+  background: var(--surface);
+  border-top: 3px solid var(--border); box-shadow: var(--e3);
   border-radius: 22px 22px 0 0;
+}
+.board__dock.is-mine {
+  background: color-mix(in srgb, var(--player) 10%, var(--surface));
+  border-top-color: var(--player);
 }
 .board__turn { display: grid; gap: 10px; }
 .turnboard { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -803,8 +807,9 @@ button.link:hover { color: var(--text); }
   .turn-actions button { padding: 4px 8px; font-size: 13px; white-space: normal; line-height: 1.15; }
   .board__hand {
     grid-area: hand; flex-wrap: wrap; gap: 4px 8px; margin: 0; padding: 8px; border-radius: var(--r-lg);
-    border: 2px solid var(--player, var(--border)); background: color-mix(in srgb, var(--player, var(--accent)) 10%, var(--surface));
+    border: 2px solid var(--border); background: var(--surface);
   }
+  .board__dock.is-mine .board__hand { border-color: var(--player); background: color-mix(in srgb, var(--player) 10%, var(--surface)); }
   .board__hand .hand { order: -1; flex-basis: 100%; }
   .board__hand .stack { flex: 1; flex-direction: row; justify-content: center; }
   .board__hand .stack .cardback, .board__hand .stack .card { display: none; }

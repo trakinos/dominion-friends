@@ -182,7 +182,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
         </div>
       </section>
 
-      <div className="board__dock" style={myTint}>
+      <div className={`board__dock ${mine ? 'is-mine' : ''}`} style={myTint}>
         <section className="board__turn">
           <TurnActions
             view={view}
