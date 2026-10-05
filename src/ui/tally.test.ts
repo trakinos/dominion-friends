@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { GameResult } from '../engine/types';
-import { stepDelay, tallySteps } from './tally';
+import { peakTotal, stepDelay, tallySteps } from './tally';
 
 const result: GameResult = {
   winners: ['a'],
@@ -80,6 +80,18 @@ describe('tallySteps edge cases', () => {
       [0, 'estate'], [3, 'estate'],
     ]);
     expect(steps.filter((s) => s.player === 3).at(-1)!.total).toBe(5);
+  });
+});
+
+describe('peakTotal', () => {
+  it('is the highest running total, above the final top score when Curses come last', () => {
+    // A reaches 14 before the Curse brings them back to 13.
+    expect(peakTotal(tallySteps(result))).toBe(14);
+  });
+
+  it('is at least 1, so an all-zero or all-Curse count never divides by zero', () => {
+    expect(peakTotal([])).toBe(1);
+    expect(peakTotal([{ player: 0, card: 'curse', points: -1, total: -1 }])).toBe(1);
   });
 });
 

@@ -4,7 +4,7 @@ import type { LobbyState } from '../../net/protocol';
 import { useLang } from '../../i18n/LangProvider';
 import { primaryType } from '../format';
 import { playerColor } from '../playerColor';
-import { stepDelay, tallySteps } from '../tally';
+import { peakTotal, stepDelay, tallySteps } from '../tally';
 import { Avatar } from './Avatar';
 
 interface Props {
@@ -31,7 +31,7 @@ export function Tally({ result, lobby, onDone }: Props) {
     return () => clearTimeout(timer);
   }, [shown, done]);
 
-  const best = Math.max(1, ...result.scores.map((s) => s.vp));
+  const peak = useMemo(() => peakTotal(steps), [steps]);
   return (
     <div className="tally">
       {result.scores.map((s, i) => {
@@ -44,7 +44,7 @@ export function Tally({ result, lobby, onDone }: Props) {
             <Avatar name={s.name} color={playerColor(lobby, s.playerId)} />
             <span className="tally__name">{s.name}</span>
             <span className="tally__track">
-              <span className="tally__fill" style={{ width: `${(Math.max(0, total) / best) * 100}%` }} />
+              <span className="tally__fill" style={{ width: `${(Math.max(0, total) / peak) * 100}%` }} />
               {last && (
                 <span key={mine.length} className={`lchip lchip--${primaryType(last.card)} tally__chip ${last.points < 0 ? 'is-minus' : ''}`}>
                   {tr.card(last.card)} {last.points > 0 ? `+${last.points}` : last.points}

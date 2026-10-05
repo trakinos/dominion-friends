@@ -701,9 +701,10 @@ button.link:hover { color: var(--text); }
 }
 .tally__row.is-winner { border-color: var(--player); box-shadow: 0 0 0 4px color-mix(in srgb, var(--player) 30%, transparent), var(--e2); }
 .tally__name { font-weight: 800; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tally__track { position: relative; height: 22px; border-radius: 99px; background: color-mix(in srgb, var(--text) 10%, transparent); }
+.tally__track { position: relative; height: 22px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb, var(--text) 10%, transparent); }
 .tally__fill { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--player); transition: width 220ms var(--ease-out); }
-.tally__chip { position: absolute; right: 6px; top: 50%; translate: 0 -50%; animation: pop var(--dur-base) var(--ease-spring); }
+/* The track clips, so the chip fits inside it and pops in place instead of dropping in from above. */
+.tally__chip { position: absolute; right: 6px; top: 50%; height: 18px; translate: 0 -50%; animation: chipIn var(--dur-base) var(--ease-spring); }
 .tally__chip.is-minus { background: var(--danger); color: var(--danger-text); }
 .tally__vp { font-family: var(--font-display); font-size: 24px; text-align: right; }
 .tally > button { justify-self: center; }
@@ -743,6 +744,7 @@ button.link:hover { color: var(--text); }
 @keyframes fade { from { opacity: 0; } }
 @keyframes grow { from { opacity: 0; transform: scale(0.96); } }
 @keyframes sheet { from { transform: translateY(100%); } }
+@keyframes chipIn { 0% { transform: scale(0.8); opacity: 0; } }
 @keyframes pop { 0% { transform: translateY(-10px) scale(0.9); opacity: 0; } }
 @keyframes fanL { to { transform: rotate(-4deg) translateX(-4px); } }
 @keyframes fanR { to { transform: rotate(4deg) translateX(4px); } }

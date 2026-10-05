@@ -37,6 +37,11 @@ export function tallySteps(result: GameResult): TallyStep[] {
   return steps;
 }
 
+/** The highest running total any player reaches: bars scale to it, since Curses (counted last) can pull a total back down. */
+export function peakTotal(steps: TallyStep[]): number {
+  return Math.max(1, ...steps.map((s) => s.total));
+}
+
 /** A little slower at the start, faster at the end, about TALLY_MS in all. */
 export function stepDelay(index: number, count: number): number {
   const progress = count <= 1 ? 0 : index / (count - 1);
