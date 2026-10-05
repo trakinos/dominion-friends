@@ -1,6 +1,6 @@
 # Dominion Friends — Roadmap
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Done
 
@@ -20,11 +20,13 @@ Nothing else is needed before friends anywhere can play.
 
 ### 2. Playtest with friends
 Real players will find what two tabs on one machine can't.
-- [ ] Play a 2-player game with a friend on another network.
+- [x] Play a 2-player game with a friend on another network.
 - [ ] Play a 3–4 player game, including at least one player on a phone.
 - [ ] Try the awkward cases: someone refreshes, someone's phone locks, the host leaves.
 - [ ] Watch for players who can't connect at all. Strict networks (office, university, some mobile carriers) can block direct browser-to-browser connections. If that happens, see "Relay server" under Next.
 - [ ] Write down what was confusing, slow or annoying. That feedback ranks the polish items below.
+
+Round 1 feedback and what changed: `docs/superpowers/specs/2026-10-05-playtest-round-1-design.md`
 
 ## Next
 
@@ -35,6 +37,7 @@ The game rules don't change; only the presentation does.
 - [ ] Set colors and fonts in `src/styles.css`.
 - [ ] Add card art: images supplied or generated, plus an image slot in the card frame.
 - [ ] Optionally, rewrite the card text in the theme's voice. The rules stay the same.
+- [ ] **End-screen art:** an illustration per VP card (for example a stall or market scene) that fills with the scoring player's color as the card is counted in the tally. Replaces the card chips.
 
 ### 4. Learning the game
 New players should be able to learn without someone explaining it.
@@ -49,8 +52,11 @@ Order these by playtest feedback.
   - highlights when a turn passes and when a choice prompt opens;
   - support for reduced motion (`prefers-reduced-motion`).
 - [ ] Show set-aside and revealed cards (Library, Sentry, Bandit). Today they vanish from view while the choice is open.
-- [ ] Alert players when it's their turn: a sound, a changing tab title, or both.
-- [ ] Add a turn timer, or let the host skip a player who is offline.
+- [ ] **Sounds**, with a mute toggle and volume remembered per device:
+  - drawing cards, playing a card, attacks, reactions (counters), game start, turn start, buying at the market, discarding;
+  - your turn starting while the tab is in the background (plus a changing tab title);
+  - a choice dialog opening, a shuffle, the timer's last-10-seconds tick.
+- [x] Turn timer (host setting) with random auto-moves and a 30 s clock for attack responses.
 - [ ] Add bots to fill empty seats or to practice solo. Build on the simple bot in `src/sim/bigMoney.ts`.
 - [ ] Relay server, if playtests show connection failures: add a TURN server (free tier on Metered or Cloudflare) to the PeerJS config.
 
@@ -72,3 +78,5 @@ Order these by playtest feedback.
 - Design spec: `docs/superpowers/specs/2026-10-04-dominion-friends-design.md`
 - Plan 1 (engine): `docs/superpowers/plans/2026-10-04-engine-and-cards.md`
 - Plan 2 (networking and UI): `docs/superpowers/plans/2026-10-04-networking-and-ui.md`
+- Playtest round 1 spec: `docs/superpowers/specs/2026-10-05-playtest-round-1-design.md`
+- Playtest round 1 plan: `docs/superpowers/plans/2026-10-05-playtest-round-1.md`
