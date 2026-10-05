@@ -47,3 +47,36 @@ describe('randomAnswer', () => {
     }
   });
 });
+
+describe('randomAnswer edge cases', () => {
+  it('clamps chooseCards when min exceeds the selectable cards, without throwing', () => {
+    const rng = createRng(9);
+    const p = { ...base, kind: 'chooseCards', cards: ['copper', 'estate', 'silver'], selectable: [1], min: 3, max: 3 } as Prompt;
+    for (let i = 0; i < 50; i++) {
+      const a = randomAnswer(p, rng);
+      expect(a).toEqual({ kind: 'cards', indices: [1] });
+    }
+  });
+
+  it('answers chooseCards with nothing selectable as an empty pick', () => {
+    const p = { ...base, kind: 'chooseCards', cards: ['copper'], selectable: [], min: 1, max: 1 } as Prompt;
+    expect(randomAnswer(p, createRng(1))).toEqual({ kind: 'cards', indices: [] });
+  });
+
+  it('answers a non-optional chooseSupply with no piles as null, without throwing', () => {
+    const p = { ...base, kind: 'chooseSupply', piles: [], optional: false } as Prompt;
+    expect(randomAnswer(p, createRng(1))).toEqual({ kind: 'supply', card: null });
+  });
+
+  it('only picks selectable indices and never repeats one', () => {
+    const rng = createRng(5);
+    const p = { ...base, kind: 'chooseCards', cards: ['a', 'b', 'c', 'd', 'e'], selectable: [0, 2, 4], min: 1, max: 5 } as Prompt;
+    for (let i = 0; i < 200; i++) {
+      const a = randomAnswer(p, rng) as { kind: 'cards'; indices: number[] };
+      expect(a.indices.length).toBeGreaterThanOrEqual(1);
+      expect(a.indices.length).toBeLessThanOrEqual(3);
+      expect(new Set(a.indices).size).toBe(a.indices.length);
+      expect(a.indices.every((x) => [0, 2, 4].includes(x))).toBe(true);
+    }
+  });
+});

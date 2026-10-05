@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from '../engine/game';
 import { newState, setZones } from '../engine/testkit';
+import type { Prompt } from '../engine/types';
 import { viewFor } from '../engine/view';
 import { buyablePiles, canPlayAllTreasures, canStillPlayAction, endGameStatus, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand, sortByCost, supplyGroups } from './moves';
 
@@ -109,5 +110,31 @@ describe('moves', () => {
     expect(groups.treasure).toEqual(['copper', 'silver', 'gold']);
     expect(groups.victory).toEqual(['estate', 'duchy', 'province', 'curse']);
     expect(groups.kingdom).toHaveLength(10);
+  });
+});
+
+describe('canStillPlayAction while a prompt is open', () => {
+  const prompt = (player: number): Prompt => ({ kind: 'chooseCards', id: 'discardDownTo', player, message: 'm', cards: ['copper'], selectable: [0], min: 0, max: 1 });
+
+  it('is false while my own prompt is open', () => {
+    const state = stateWithHand(['village', 'copper']);
+    state.pending = prompt(0);
+    const view = viewFor(state, 'p0');
+    expect(view.prompt).not.toBeNull();
+    expect(canStillPlayAction(view)).toBe(false);
+  });
+
+  it('is false while waiting on another player', () => {
+    const state = stateWithHand(['village', 'copper']);
+    state.pending = prompt(1);
+    const view = viewFor(state, 'p0');
+    expect(view.waitingOn).not.toBeNull();
+    expect(canStillPlayAction(view)).toBe(false);
+  });
+
+  it('is false once the game is over', () => {
+    const state = stateWithHand(['village', 'copper']);
+    state.result = { winners: ['p0'], scores: [] };
+    expect(canStillPlayAction(viewFor(state, 'p0'))).toBe(false);
   });
 });
