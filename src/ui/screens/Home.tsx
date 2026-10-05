@@ -18,6 +18,8 @@ export function Home({ initialName, initialCode, busy, error, onHost, onJoin }: 
   const { tr } = useLang();
   const [name, setName] = useState(initialName);
   const [code, setCode] = useState(initialCode);
+  // Opened from an invite link: joining is the only thing to do here.
+  const [invited, setInvited] = useState(initialCode !== '');
   const cleanCode = normalizeRoomCode(code);
   return (
     <main className="screen home">
@@ -30,17 +32,19 @@ export function Home({ initialName, initialCode, busy, error, onHost, onJoin }: 
             {tr.t('yourName')}
             <input value={name} maxLength={MAX_NAME_LENGTH} onChange={(e) => setName(e.target.value)} placeholder={tr.t('namePlaceholder')} />
           </label>
-          <div className="home__choices">
+          <div className={`home__choices ${invited ? 'home__choices--single' : ''}`}>
+            {!invited && (
+              <section className="panel">
+                <h2>{tr.t('hostTitle')}</h2>
+                <p>{tr.t('hostBlurb')}</p>
+                <button type="button" className="primary lg wide" disabled={busy} onClick={() => onHost(name)}>
+                  <Icon name="play" />
+                  {tr.t('hostButton')}
+                </button>
+              </section>
+            )}
             <section className="panel">
-              <h2>{tr.t('hostTitle')}</h2>
-              <p>{tr.t('hostBlurb')}</p>
-              <button type="button" className="primary lg wide" disabled={busy} onClick={() => onHost(name)}>
-                <Icon name="play" />
-                {tr.t('hostButton')}
-              </button>
-            </section>
-            <section className="panel">
-              <h2>{tr.t('joinTitle')}</h2>
+              <h2>{invited ? tr.t('invitedTitle') : tr.t('joinTitle')}</h2>
               <label className="field">
                 {tr.t('roomCode')}
                 <input
@@ -53,9 +57,29 @@ export function Home({ initialName, initialCode, busy, error, onHost, onJoin }: 
                   aria-invalid={error ? true : undefined}
                 />
               </label>
-              <button type="button" className="lg wide" disabled={busy || !cleanCode} onClick={() => cleanCode && onJoin(cleanCode, name)}>
+              <button
+                type="button"
+                className={`lg wide ${invited ? 'primary' : ''}`}
+                disabled={busy || !cleanCode}
+                onClick={() => cleanCode && onJoin(cleanCode, name)}
+              >
+                {invited && <Icon name="play" />}
                 {tr.t('joinButton')}
               </button>
+              {invited && (
+                <button
+                  type="button"
+                  className="link"
+                  disabled={busy}
+                  onClick={() => {
+                    setInvited(false);
+                    setCode('');
+                    history.replaceState(null, '', location.pathname + location.search);
+                  }}
+                >
+                  {tr.t('hostInstead')}
+                </button>
+              )}
             </section>
           </div>
           {busy && <p className="home__status muted">{tr.t('connecting')}</p>}

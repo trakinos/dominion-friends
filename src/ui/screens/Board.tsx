@@ -6,6 +6,7 @@ import { useLang } from '../../i18n/LangProvider';
 import { Card } from '../components/Card';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Hand } from '../components/Hand';
+import { Legend } from '../components/Legend';
 import { Icon } from '../components/Icon';
 import { Log } from '../components/Log';
 import { Opponents } from '../components/Opponents';
@@ -123,6 +124,7 @@ export function Board({ view, lobby, code, error, onIntent, onDismissError, onEn
             </button>
           </div>
         )}
+        <Legend piles />
         <Supply
           view={view}
           buyable={buyablePiles(view)}
