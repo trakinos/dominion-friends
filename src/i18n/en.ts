@@ -100,6 +100,8 @@ const ui = {
   "readyToStart": "All set",
   "startSummary": "{players} players · {cards} kingdom cards",
   "winnerTag": "winner",
+  "tallyTitle": "Counting points…",
+  "tieBroken": "Tied on points — fewer turns wins.",
   "pileEmpty": "empty",
   "kingdomByHost": "chosen by the host",
   "or": "or",

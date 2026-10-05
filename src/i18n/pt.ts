@@ -98,6 +98,8 @@ const pt: Dictionary = {
     "readyToStart": "Tudo pronto",
     "startSummary": "{players} jogadores · {cards} cartas no reino",
     "winnerTag": "vencedor",
+    "tallyTitle": "Contando os pontos…",
+    "tieBroken": "Empate em pontos — vence quem jogou menos turnos.",
     "pileEmpty": "vazia",
     "kingdomByHost": "escolhido pelo anfitrião",
     "or": "ou",
