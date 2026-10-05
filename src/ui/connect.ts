@@ -17,7 +17,15 @@ export async function hostGame(name: string): Promise<ActiveSession> {
   const host = new HostSession();
   peer.onConnection((conn) => host.accept(conn));
   const session = new GuestSession(host.connectLocal(), name, memoryTokenStore());
-  return { code: peer.code, session, host, close: () => peer.destroy() };
+  return {
+    code: peer.code,
+    session,
+    host,
+    close: () => {
+      host.close();
+      peer.destroy();
+    },
+  };
 }
 
 export async function joinGame(code: string, name: string): Promise<ActiveSession> {

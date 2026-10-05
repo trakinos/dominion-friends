@@ -166,6 +166,13 @@ export class HostSession {
     this.broadcastLobby();
   }
 
+  /** The host left: stops the clock and drops the game so nothing moves in the background. */
+  close(): void {
+    this.clock?.stop();
+    this.clock = null;
+    this.activeGame = null;
+  }
+
   /** Call after every change to the game: keeps the clock in step, then sends fresh views. */
   gameChanged(): void {
     const game = this.activeGame;

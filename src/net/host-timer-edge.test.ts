@@ -61,6 +61,18 @@ describe('HostSession turn timer edge cases', () => {
     expect(host.lobby.turnTimer).toBe(120);
   });
 
+  it('close() stops the clock: no more auto-moves after the host leaves', async () => {
+    const { sched, host } = await timedGame(45);
+    const game = host.game!;
+    const turn = game.state.turn;
+    const logLength = game.state.log.length;
+    host.close();
+    expect(host.game).toBeNull();
+    sched.advance(10 * 60_000);
+    expect(game.state.turn).toBe(turn);
+    expect(game.state.log.length).toBe(logLength);
+  });
+
   it('play again starts a fresh clock', async () => {
     const ctx = await timedGame(45);
     const { sched, host, ana } = ctx;
