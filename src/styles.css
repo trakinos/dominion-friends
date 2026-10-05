@@ -846,6 +846,7 @@ button.link:hover { color: var(--text); }
   .scores tr.is-winner { border-color: var(--coin-edge); }
   .scores td, .scores td:first-child, .scores td:last-child { border: 0; border-radius: 0; padding: 6px 12px; }
   .scores__rank { display: none !important; }
+  .end { padding-top: 56px; } /* clear the language toggle, like .lobby__header */
   .end .actions button { flex: 1; }
 }
 
