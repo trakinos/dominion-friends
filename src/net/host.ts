@@ -1,4 +1,4 @@
-import { KINGDOM_IDS } from '../cards/registry';
+import { DEFAULT_KINGDOM, KINGDOM_IDS } from '../cards/registry';
 import { Game } from '../engine/game';
 import { createRng, shuffle } from '../engine/rng';
 import type { ApplyResult, CardId, Intent } from '../engine/types';
@@ -50,7 +50,7 @@ export class HostSession {
   constructor(opts: HostOptions = {}) {
     this.random = opts.random ?? Math.random;
     this.makeToken = opts.makeToken ?? randomToken;
-    this.kingdom = this.pickRandomKingdom();
+    this.kingdom = [...DEFAULT_KINGDOM];
   }
 
   get game(): Game | null {
@@ -102,6 +102,12 @@ export class HostSession {
   randomizeKingdom(): void {
     if (this.activeGame) return;
     this.kingdom = this.pickRandomKingdom();
+    this.broadcastLobby();
+  }
+
+  resetKingdom(): void {
+    if (this.activeGame) return;
+    this.kingdom = [...DEFAULT_KINGDOM];
     this.broadcastLobby();
   }
 

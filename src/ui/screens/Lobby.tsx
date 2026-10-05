@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DEFAULT_KINGDOM } from '../../cards/registry';
 import type { CardId } from '../../engine/types';
 import { MAX_PLAYERS, type HostSession } from '../../net/host';
 import type { LobbyState } from '../../net/protocol';
@@ -107,7 +108,16 @@ export function Lobby({ lobby, me, code, shareLink, host, onLeave }: Props) {
 
         <section className="panel">
           {host ? (
-            <KingdomPicker selected={draft} onToggle={toggle} onRandomize={() => host.randomizeKingdom()} />
+            <KingdomPicker
+              selected={draft}
+              onToggle={toggle}
+              onRandomize={() => host.randomizeKingdom()}
+              onReset={() => {
+                // the lobby may already hold the default while the draft is half-edited
+                setDraft(DEFAULT_KINGDOM);
+                host.resetKingdom();
+              }}
+            />
           ) : (
             <>
               <div className="picker__bar">

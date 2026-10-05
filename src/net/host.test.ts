@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { KINGDOM_IDS } from '../cards/registry';
+import { DEFAULT_KINGDOM, KINGDOM_IDS } from '../cards/registry';
 import { HostSession } from './host';
 import { flush } from './memory';
 import { connectClient, join, seededHostOptions } from './testing';
@@ -75,5 +75,13 @@ describe('HostSession lobby', () => {
     const randomized = ana.last('lobby')!.lobby.kingdom;
     expect(new Set(randomized).size).toBe(10);
     expect(randomized.every((id) => KINGDOM_IDS.includes(id))).toBe(true);
+
+    host.resetKingdom();
+    await flush();
+    expect(ana.last('lobby')!.lobby.kingdom).toEqual(DEFAULT_KINGDOM);
+  });
+
+  it('starts with the First Game kingdom', () => {
+    expect(new HostSession(seededHostOptions()).lobby.kingdom).toEqual(DEFAULT_KINGDOM);
   });
 });
