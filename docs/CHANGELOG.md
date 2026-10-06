@@ -2,6 +2,13 @@
 
 What changed for players, newest first. Every push to `main` deploys to https://trakinos.github.io/dominion-friends/.
 
+## Unreleased — Card animations
+
+### Added
+- **Drawing.** Cards you draw fly from your deck into your hand, one after another.
+- **Discarding.** Cards you discard fly from your hand or the play area onto your discard pile, including at Clean-up, before the new hand is drawn. Cards discarded straight from your deck (Vassal, Sentry, Library) fly from the deck. When another player's turn ends, their play area flies to their seat at the top.
+- Animations are skipped with reduced motion and while the tab is in the background.
+
 ## 2026-10-05 — Playtest round 1
 
 Feedback from the first game with friends. Spec: `docs/superpowers/specs/2026-10-05-playtest-round-1-design.md`. Reasoning behind the coding decisions: `docs/journal/dominion-friends-impl-10052026.md`.

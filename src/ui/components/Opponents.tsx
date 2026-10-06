@@ -16,7 +16,7 @@ export function Opponents({ view, online, colorOf }: Props) {
     <ul className="opponents">
       {view.players.map((p, i) =>
         i === view.you ? null : (
-          <li key={p.id} className={i === view.turn.player ? 'is-current' : ''}>
+          <li key={p.id} className={i === view.turn.player ? 'is-current' : ''} data-motion={`seat-${i}`}>
             <Avatar name={p.name} color={colorOf(i)} online={online(i)} />
             <span>
               <span className="seat__name">{p.name}</span>

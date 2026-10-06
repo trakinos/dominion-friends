@@ -18,6 +18,7 @@ import { TurnActions } from '../components/TurnActions';
 import { TurnBoard } from '../components/TurnBoard';
 import { EMPTY_PILES_TO_END, buyablePiles, canStillPlayAction, endGameStatus, guardStillApplies, hasNoActionToPlay, intentForHandCard, isMyTurn, playableHand } from '../moves';
 import { playerColor } from '../playerColor';
+import { useCardMotion } from '../useCardMotion';
 
 type Tab = 'hand' | 'supply' | 'log';
 const TABS: { id: Tab; label: 'tabHand' | 'tabSupply' | 'tabLog' }[] = [
@@ -51,6 +52,8 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
   const province = tr.card('province');
   const noAction = hasNoActionToPlay(view);
   const menu = useRef<HTMLDetailsElement>(null);
+  const root = useRef<HTMLElement>(null);
+  useCardMotion(root, view);
   const names = view.players.map((p) => p.name);
   const online = (i: number) => lobby.players.find((p) => p.id === view.players[i].id)?.online ?? false;
   const colorOf = (i: number) => playerColor(lobby, view.players[i].id);
@@ -78,7 +81,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
   }, [error]);
 
   return (
-    <main className={`board board--tab-${tab}`}>
+    <main className={`board board--tab-${tab}`} ref={root}>
       <header className="board__top">
         <div className="brand">
           {tr.t('appName')}
@@ -169,7 +172,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
           <h2>{mine ? tr.t('yourPlayArea') : tr.t('playArea', { name: current.name })}</h2>
           <span className="zone__hint">{tr.t('playAreaHint')}</span>
         </div>
-        <div className="table-row">
+        <div className="table-row" data-motion="play">
           {current.inPlay.map((id, i) => (
             <Card key={i} id={id} size="small" />
           ))}
@@ -217,7 +220,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
               </button>
             </div>
           )}
-          <div className="stack">
+          <div className="stack" data-motion="deck">
             <div className={`cardback ${me.deckCount === 0 ? 'is-empty' : ''}`} />
             <span>
               <Icon name="deck" />
@@ -235,7 +238,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
               else onIntent(intent);
             }}
           />
-          <div className="stack">
+          <div className="stack" data-motion="discard">
             {me.discardTop ? <Card id={me.discardTop} size="small" /> : <div className="cardback is-empty" />}
             <span>
               <Icon name="discard" />
