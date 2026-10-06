@@ -11,7 +11,7 @@ interface Props {
 
 export function Hand({ cards, playable, active, onPlay }: Props) {
   return (
-    <div className="hand">
+    <div className="hand" data-motion="hand">
       {cards.map((id, i) => (
         <Card
           key={`${i}-${id}`}

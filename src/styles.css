@@ -857,9 +857,15 @@ button.link:hover { color: var(--text); }
   .end .actions button { flex: 1; }
 }
 
+/* cards in flight between deck, hand, play area and discard (useCardMotion) */
+.flights { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
+.flights > * { position: absolute; margin: 0; box-sizing: border-box; will-change: transform, opacity; }
+.flights > .card { box-shadow: var(--e2); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
   .card.is-highlight, .card.is-highlight:hover, .card.is-selected, .pile.is-highlight { transform: none; }
   .timer.is-low { animation: none; }
   .tally__fill, .tally__chip, .end__reveal { transition: none; animation: none; }
+  .flights { display: none; }
 }
