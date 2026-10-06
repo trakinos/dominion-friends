@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Game } from '../engine/game';
-import { answerCards, newState, setZones } from '../engine/testkit';
+import { answerCards, answerSupply, newState, setZones } from '../engine/testkit';
 import type { GameState, Intent } from '../engine/types';
 import { viewFor } from '../engine/view';
 import { cardMotion } from './motion';
@@ -79,8 +79,17 @@ describe('cardMotion', () => {
     setZones(state, 0, { hand: [], inPlay: [], deck: ESTATES, discard: [] });
     state.turn.phase = 'buy';
     state.turn.coins = 3;
-    const { mine } = motionAfter(state, { type: 'buy', card: 'silver' });
-    expect(mine).toEqual({ drawn: [], flights: [], deckToDiscard: 0 });
+    const { mine, theirs } = motionAfter(state, { type: 'buy', card: 'silver' });
+    expect(mine).toEqual({ drawn: [], flights: [], deckToDiscard: 0, bought: { card: 'silver', player: 0 } });
+    expect(theirs.bought).toEqual({ card: 'silver', player: 0 });
+  });
+
+  it('does not take a gain into your hand for a buy', () => {
+    const state = newState({ kingdom: ['mine', 'chapel', 'moat', 'village', 'workshop', 'militia', 'smithy', 'festival', 'laboratory', 'market'] });
+    setZones(state, 0, { hand: ['mine', 'copper'], inPlay: [], deck: ESTATES, discard: [] });
+    const { mine } = motionAfter(state, { type: 'playAction', handIndex: 0 }, answerCards([0]), answerSupply('silver'));
+    expect(mine.bought).toBeNull();
+    expect(mine.drawn).toEqual([]);
   });
 
   it('flies a card discarded from the deck (Vassal) onto the discard pile', () => {

@@ -2,7 +2,12 @@
 
 What changed for players, newest first. Every push to `main` deploys to https://trakinos.github.io/dominion-friends/.
 
-## Unreleased — Card animations
+## Unreleased — Buy animation
+
+### Added
+- **Buying.** A bought card pops out of its pile and flies to the buyer's discard pile (or their seat at the top, for other players). On phones, while you shop on the Supply tab, it flies to the Hand tab.
+
+## 2026-10-06 — Card animations
 
 ### Added
 - **Drawing.** Cards you draw fly from your deck into your hand, one after another.

@@ -4,6 +4,10 @@ import { cardMotion, type CardMotion } from './motion';
 
 const FLY_MS = 420;
 const DRAW_MS = 380;
+const BUY_MS = 650;
+/** A small card (.card--small), the size a bought card flies at. */
+const CARD_W = 84;
+const CARD_H = 118;
 /** Gap between cards in a stream, so a hand of five reads as five draws. */
 const STAGGER_MS = 70;
 const EASE = 'cubic-bezier(0.2, 0.8, 0.2, 1)';
@@ -90,6 +94,31 @@ function run(root: HTMLElement, motion: CardMotion, prev: Snapshot, view: Player
     for (let i = 0; i < motion.deckToDiscard; i++) {
       const g = ghost(back, deck);
       play(g, [{ transform: 'none' }, { transform: toward(deck, discard), opacity: 0.4 }], FLY_MS, i * STAGGER_MS);
+    }
+  }
+
+  if (motion.bought) {
+    const { card, player } = motion.bought;
+    const pile = rectOf(root, `pile-${card}`);
+    // On phones your discard pile sits on the Hand tab while you shop on the Supply tab.
+    const to = discardOf(player) ?? (player === view.you ? rectOf(root, 'tab-hand') : null);
+    const face = root.querySelector<HTMLElement>(`[data-motion="pile-${card}"] .pile__preview .card`);
+    if (pile && to && face) {
+      // The pile is a compact tile; lift a full small card out of its middle.
+      const from = new DOMRect(pile.left + pile.width / 2 - CARD_W / 2, pile.top + pile.height / 2 - CARD_H / 2, CARD_W, CARD_H);
+      const g = ghost(face, from);
+      g.classList.replace('card--big', 'card--small');
+      g.querySelectorAll('.card__body, .card__more').forEach((n) => n.remove());
+      play(
+        g,
+        [
+          { transform: 'scale(0.6)', opacity: 0 },
+          { transform: 'scale(1.08)', opacity: 1, offset: 0.25 },
+          { transform: toward(from, to), opacity: 0.5 },
+        ],
+        BUY_MS,
+        0,
+      );
     }
   }
 

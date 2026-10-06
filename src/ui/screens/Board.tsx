@@ -112,7 +112,7 @@ export function Board({ view, lobby, code, error, clock, onIntent, onDismissErro
 
       <nav className="board__tabs">
         {TABS.map((t) => (
-          <button key={t.id} type="button" className={tab === t.id ? 'is-active' : ''} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
+          <button key={t.id} type="button" data-motion={`tab-${t.id}`} className={tab === t.id ? 'is-active' : ''} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
             {tr.t(t.label)}
           </button>
         ))}

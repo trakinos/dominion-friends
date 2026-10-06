@@ -45,7 +45,7 @@ export function Pile({ id, count, highlight, selected, off, dimmed, showTypes, o
     .filter(Boolean)
     .join(' ');
   return (
-    <div className={`pile-wrap ${peek ? 'is-peek' : ''}`} onPointerLeave={() => setPeek(false)}>
+    <div className={`pile-wrap ${peek ? 'is-peek' : ''}`} onPointerLeave={() => setPeek(false)} data-motion={`pile-${id}`}>
       <button
         type="button"
         className={className}

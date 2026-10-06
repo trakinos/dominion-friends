@@ -18,12 +18,14 @@ export interface CardMotion {
   flights: Flight[];
   /** Cards discarded straight from your deck (Vassal, Sentry, Library…). */
   deckToDiscard: number;
+  /** A card bought from the Supply, on its way to the buyer's discard pile. */
+  bought: { card: CardId; player: number } | null;
 }
 
 /** More cards than this flying off the deck at once would just be noise. */
 const MAX_DECK_TO_DISCARD = 6;
 
-const NONE: CardMotion = { drawn: [], flights: [], deckToDiscard: 0 };
+const NONE: CardMotion = { drawn: [], flights: [], deckToDiscard: 0, bought: null };
 
 function counts(cards: CardId[]): Map<CardId, number> {
   const m = new Map<CardId, number>();
@@ -93,5 +95,12 @@ export function cardMotion(prev: PlayerView, next: PlayerView): CardMotion {
     deckToDiscard = Math.min(MAX_DECK_TO_DISCARD, deckSpent, Math.max(0, after.discardCount - before.discardCount - toMyDiscard - otherGains));
   }
 
-  return { drawn, flights, deckToDiscard };
+  // A buy spends one Buy and takes one card from a pile, within the same turn.
+  let bought: CardMotion['bought'] = null;
+  const taken = [...gained].filter(([, n]) => n > 0);
+  if (next.turn.player === owner && prev.turn.buys - next.turn.buys === 1 && taken.length === 1 && taken[0][1] === 1) {
+    bought = { card: taken[0][0], player: owner };
+  }
+
+  return { drawn, flights, deckToDiscard, bought };
 }
